@@ -306,40 +306,79 @@ const LESSONS=[
   }
 ];
 
-/* Reinforcement content by category */
+/* Reinforcement content by category — pool of examples, 2 shown at random each time */
 const REINFORCE={
   suma_resta:{
     title:"💡 Repaso: suma y resta",
     body:"Para eliminar un número que <strong>suma o resta</strong> a $x$, aplica lo contrario:",
-    exs:[{eq:"x+4=9",  step:"x=9-4=5",  rule:"Sumaba 4 → restamos 4"},
-         {eq:"x-3=8",  step:"x=8+3=11", rule:"Restaba 3 → sumamos 3"}]
+    pool:[
+      {eq:"x+4=9",   step:"x+4-4=9-4 \\Rightarrow x=5",   rule:"Sumaba 4 → restamos 4 a ambos lados"},
+      {eq:"x-3=8",   step:"x-3+3=8+3 \\Rightarrow x=11",  rule:"Restaba 3 → sumamos 3 a ambos lados"},
+      {eq:"x+7=15",  step:"x+7-7=15-7 \\Rightarrow x=8",  rule:"Sumaba 7 → restamos 7 a ambos lados"},
+      {eq:"x-5=2",   step:"x-5+5=2+5 \\Rightarrow x=7",   rule:"Restaba 5 → sumamos 5 a ambos lados"},
+      {eq:"x+12=20", step:"x+12-12=20-12 \\Rightarrow x=8",rule:"Sumaba 12 → restamos 12 a ambos lados"},
+      {eq:"x-9=4",   step:"x-9+9=4+9 \\Rightarrow x=13",  rule:"Restaba 9 → sumamos 9 a ambos lados"}
+    ]
   },
   mult_div:{
     title:"💡 Repaso: multiplicación y división",
     body:"Para eliminar un número que <strong>multiplica o divide</strong> a $x$, aplica lo contrario:",
-    exs:[{eq:"3x=15",        step:"x=15\\div3=5",  rule:"Multiplicaba por 3 → dividimos entre 3"},
-         {eq:"\\dfrac{x}{4}=2",step:"x=2\\times4=8",rule:"Dividía entre 4 → multiplicamos por 4"}]
+    pool:[
+      {eq:"3x=15",             step:"3x\\div3=15\\div3 \\Rightarrow x=5",   rule:"Multiplicaba por 3 → dividimos entre 3"},
+      {eq:"\\dfrac{x}{4}=2",  step:"\\dfrac{x}{4}\\cdot4=2\\cdot4 \\Rightarrow x=8", rule:"Dividía entre 4 → multiplicamos por 4"},
+      {eq:"5x=30",             step:"5x\\div5=30\\div5 \\Rightarrow x=6",   rule:"Multiplicaba por 5 → dividimos entre 5"},
+      {eq:"\\dfrac{x}{3}=7",  step:"\\dfrac{x}{3}\\cdot3=7\\cdot3 \\Rightarrow x=21",rule:"Dividía entre 3 → multiplicamos por 3"},
+      {eq:"2x=18",             step:"2x\\div2=18\\div2 \\Rightarrow x=9",   rule:"Multiplicaba por 2 → dividimos entre 2"},
+      {eq:"\\dfrac{x}{6}=4",  step:"\\dfrac{x}{6}\\cdot6=4\\cdot6 \\Rightarrow x=24",rule:"Dividía entre 6 → multiplicamos por 6"}
+    ]
   },
   dos_pasos:{
     title:"💡 Repaso: dos pasos",
-    body:"El orden correcto es siempre: <strong>1.º suma/resta → 2.º mult./div.</strong>",
-    exs:[{eq:"4x-2=10",step:"4x=12 \\Rightarrow x=3",rule:"Sumamos 2 y luego dividimos entre 4"}]
+    body:"El orden correcto es siempre: <strong>1.º deshaz la suma/resta → 2.º deshaz la mult./div.</strong>",
+    pool:[
+      {eq:"4x-2=10", step:"4x=10+2=12 \\Rightarrow x=12\\div4=3",  rule:"1.º sumamos 2, 2.º dividimos entre 4"},
+      {eq:"3x+5=14", step:"3x=14-5=9 \\Rightarrow x=9\\div3=3",    rule:"1.º restamos 5, 2.º dividimos entre 3"},
+      {eq:"2x+7=13", step:"2x=13-7=6 \\Rightarrow x=6\\div2=3",    rule:"1.º restamos 7, 2.º dividimos entre 2"},
+      {eq:"5x-3=12", step:"5x=12+3=15 \\Rightarrow x=15\\div5=3",  rule:"1.º sumamos 3, 2.º dividimos entre 5"},
+      {eq:"\\dfrac{x}{2}+3=7",step:"\\dfrac{x}{2}=7-3=4 \\Rightarrow x=4\\cdot2=8",rule:"1.º restamos 3, 2.º multiplicamos por 2"},
+      {eq:"\\dfrac{x}{3}-1=5",step:"\\dfrac{x}{3}=5+1=6 \\Rightarrow x=6\\cdot3=18",rule:"1.º sumamos 1, 2.º multiplicamos por 3"}
+    ]
   },
   op_inversa:{
     title:"💡 Repaso: operación inversa",
-    body:"Recuerda los pares de operaciones inversas:",
-    exs:[{eq:"+\\,a \\leftrightarrow -\\,a",step:"\\times\\,a \\leftrightarrow \\div\\,a",rule:"Aplica siempre la contraria a la que aparece"}]
+    body:"Cada operación tiene su contraria. Aplica siempre la <strong>contraria</strong> a la que aparece en la ecuación:",
+    pool:[
+      {eq:"x+6=10",  step:"x+6-6=10-6 \\Rightarrow x=4",  rule:"La inversa de +6 es −6"},
+      {eq:"x-4=9",   step:"x-4+4=9+4 \\Rightarrow x=13",  rule:"La inversa de −4 es +4"},
+      {eq:"4x=24",   step:"4x\\div4=24\\div4 \\Rightarrow x=6",rule:"La inversa de ×4 es ÷4"},
+      {eq:"\\dfrac{x}{5}=3",step:"\\dfrac{x}{5}\\cdot5=3\\cdot5 \\Rightarrow x=15",rule:"La inversa de ÷5 es ×5"},
+      {eq:"x+9=17",  step:"x+9-9=17-9 \\Rightarrow x=8",  rule:"La inversa de +9 es −9"},
+      {eq:"7x=56",   step:"7x\\div7=56\\div7 \\Rightarrow x=8",rule:"La inversa de ×7 es ÷7"}
+    ]
   },
   detectar_error:{
     title:"💡 Repaso: comprobar soluciones",
-    body:"Para saber si $x=N$ es la solución, <strong>sustitúyela</strong> y comprueba si ambos lados coinciden.",
-    exs:[{eq:"2x+1=9,\\;x=3?",step:"2\\cdot3+1=7\\neq9",rule:"No es correcto → la solución es x = 4"}]
+    body:"Para verificar $x=N$, <strong>sustitúyela</strong> en la ecuación y comprueba si los dos lados son iguales:",
+    pool:[
+      {eq:"2x+1=9,\\;x=3?",  step:"2\\cdot3+1=7\\neq9",          rule:"No es correcto — la solución es x = 4"},
+      {eq:"3x-2=7,\\;x=3?",  step:"3\\cdot3-2=7=7\\;✓",          rule:"Correcto — la igualdad se cumple"},
+      {eq:"4x+1=13,\\;x=4?", step:"4\\cdot4+1=17\\neq13",        rule:"No es correcto — la solución es x = 3"},
+      {eq:"5x-3=12,\\;x=3?", step:"5\\cdot3-3=12=12\\;✓",        rule:"Correcto — la igualdad se cumple"},
+      {eq:"x+8=14,\\;x=5?",  step:"5+8=13\\neq14",               rule:"No es correcto — la solución es x = 6"},
+      {eq:"2x-4=10,\\;x=7?", step:"2\\cdot7-4=10=10\\;✓",        rule:"Correcto — la igualdad se cumple"}
+    ]
   },
   x_ambos_lados:{
     title:"💡 Repaso: x en ambos lados",
-    body:"Cuando <strong>x aparece en los dos lados</strong>, primero agrúpalas todas en un solo lado antes de despejar:",
-    exs:[{eq:"3x+2=x+8",step:"3x-x=8-2 \\Rightarrow 2x=6 \\Rightarrow x=3",rule:"Resta la x del lado con menor coeficiente"},
-         {eq:"5x-1=2x+8",step:"5x-2x=8+1 \\Rightarrow 3x=9 \\Rightarrow x=3",rule:"Mueve los números al lado contrario"}]
+    body:"Cuando <strong>x aparece en los dos lados</strong>, primero agrúpalas en un solo lado:",
+    pool:[
+      {eq:"3x+2=x+8",   step:"3x-x=8-2 \\Rightarrow 2x=6 \\Rightarrow x=3",    rule:"Restamos x a ambos lados"},
+      {eq:"5x-1=2x+8",  step:"5x-2x=8+1 \\Rightarrow 3x=9 \\Rightarrow x=3",   rule:"Restamos 2x a ambos lados"},
+      {eq:"4x+3=x+9",   step:"4x-x=9-3 \\Rightarrow 3x=6 \\Rightarrow x=2",    rule:"Restamos x a ambos lados"},
+      {eq:"6x-2=2x+10", step:"6x-2x=10+2 \\Rightarrow 4x=12 \\Rightarrow x=3", rule:"Restamos 2x a ambos lados"},
+      {eq:"7x+1=3x+13", step:"7x-3x=13-1 \\Rightarrow 4x=12 \\Rightarrow x=3", rule:"Restamos 3x a ambos lados"},
+      {eq:"5x-4=2x+8",  step:"5x-2x=8+4 \\Rightarrow 3x=12 \\Rightarrow x=4",  rule:"Restamos 2x a ambos lados"}
+    ]
   }
 };
 
@@ -417,7 +456,7 @@ function generatePool(){
 const CAT_LABELS={suma_resta:"Suma y resta",mult_div:"Mult. y división",dos_pasos:"Dos operaciones",op_inversa:"Operación inversa",detectar_error:"Detectar errores",x_ambos_lados:"x en ambos lados"};
 let beliefs,QUESTIONS=[],currentQ=null;
 let qCount,okCount,koCount,history,catCounts,selAns,answered,koStreak;
-let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,reinforcedCats,pendingReinforce;
+let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,pendingReinforce;
 /* per-phase stats for results */
 let phaseStats=[];
 
@@ -425,7 +464,7 @@ function init(){
   QUESTIONS=generatePool();
   beliefs=[1/NH,1/NH,1/NH];
   qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;
-  currentPhase=0;phaseQCount=0;phaseOkCount=0;phaseErrByCat={};reinforcedCats=new Set();pendingReinforce=null;
+  currentPhase=0;phaseQCount=0;phaseOkCount=0;phaseErrByCat={};pendingReinforce=null;
   phaseStats=[];
 }
 
@@ -466,7 +505,7 @@ function showLesson(phase){
 }
 
 function startPhase(){
-  phaseQCount=0;phaseOkCount=0;phaseErrByCat={};reinforcedCats=new Set();pendingReinforce=null;
+  phaseQCount=0;phaseOkCount=0;phaseErrByCat={};pendingReinforce=null;
   updateStepper();
   showOnly("quiz-screen");
   askNextPhaseQuestion();
@@ -474,9 +513,10 @@ function startPhase(){
 
 /* ── REINFORCEMENT SCREEN ──────────────────────────────── */
 function showReinforcement(cat){
-  reinforcedCats.add(cat);pendingReinforce=null;
+  pendingReinforce=null;
   const R=REINFORCE[cat]||REINFORCE["dos_pasos"];
-  const exsHtml=R.exs.map(e=>`
+  const picked=sfl([...R.pool]).slice(0,2);
+  const exsHtml=picked.map(e=>`
     <div class="rf-ex">
       <div class="rf-eq">${rEq(e.eq)}</div>
       <div style="text-align:center">${rInline(e.step)}</div>
@@ -637,7 +677,8 @@ function submitAnswer(){
   updateProgStrip();
 
   /* determine next action */
-  const needReinforce=!ok&&(phaseErrByCat[q.category]||0)>=2&&!reinforcedCats.has(q.category);
+  const errCount=phaseErrByCat[q.category]||0;
+  const needReinforce=!ok&&errCount>=2&&errCount%2===0;
   pendingReinforce=needReinforce?q.category:null;
   const phDone=isPhaseComplete();
   const nxt=document.getElementById("btn-next");nxt.style.display="block";
