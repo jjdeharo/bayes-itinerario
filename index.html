@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Despejar x · Itinerario · 1.º ESO</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<style>
+:root{
+  --pri:#4f46e5;--pri-l:#818cf8;--pri-bg:#eff0ff;
+  --ok:#22c55e;--ok-bg:#f0fdf4;--ok-b:#86efac;
+  --err:#ef4444;--err-bg:#fef2f2;--err-b:#fca5a5;
+  --warn-bg:#fffbeb;--warn-b:#fde68a;--warn-t:#92400e;
+  --bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:1.4rem;color:var(--pri);font-weight:700;text-align:center}
+.sub{text-align:center;color:var(--muted);font-size:.88rem;margin-top:3px;margin-bottom:20px}
+
+/* ── Stepper ── */
+.stepper{display:flex;align-items:flex-start;margin-bottom:22px}
+.st-item{display:flex;flex-direction:column;align-items:center;flex:1}
+.st-circle{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;color:var(--muted);background:#fff;transition:all .35s}
+.st-item.active .st-circle{border-color:var(--pri);background:var(--pri);color:#fff}
+.st-item.done .st-circle{border-color:var(--ok);background:var(--ok);color:#fff}
+.st-lbl{font-size:.68rem;color:var(--muted);margin-top:5px;text-align:center;line-height:1.3;max-width:72px}
+.st-item.active .st-lbl{color:var(--pri);font-weight:600}
+.st-item.done .st-lbl{color:var(--ok)}
+.st-line{flex:1;height:2px;background:var(--border);margin-top:17px;transition:background .35s}
+.st-line.done{background:var(--ok)}
+
+/* ── Card ── */
+.card{background:var(--card);border-radius:16px;padding:26px;box-shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);margin-bottom:14px}
+
+/* ── Lesson card ── */
+.lesson-icon{font-size:2.4rem;text-align:center;margin-bottom:10px}
+.lesson-title{font-size:1.1rem;font-weight:700;text-align:center;color:var(--pri);margin-bottom:14px}
+.lesson-intro{font-size:.92rem;line-height:1.75;margin-bottom:14px}
+.lesson-rules{background:var(--pri-bg);border-radius:10px;padding:12px 16px;margin-bottom:16px;list-style:none}
+.lesson-rules li{font-size:.88rem;line-height:1.9;display:flex;gap:8px;align-items:center}
+.lesson-rules .katex{vertical-align:middle}
+.lesson-rules li::before{content:"→";color:var(--pri);font-weight:700;flex-shrink:0}
+.ex-box{background:#f8faff;border:2px solid #e0e7ff;border-radius:12px;padding:14px 18px;margin-bottom:14px}
+.ex-title{font-size:.73rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:10px}
+.ex-eq{text-align:center;margin-bottom:10px;overflow-x:auto}
+.ex-eq .katex{font-size:1.35rem}
+.ex-steps{display:flex;flex-direction:column;gap:5px}
+.ex-step{display:flex;gap:8px;align-items:center;font-size:.87rem}
+.ex-snum{width:18px;height:18px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0}
+.ex-step-math .katex{font-size:.9rem}
+.ex-note{font-size:.83rem;color:#16a34a;margin-top:10px;text-align:center}
+
+/* ── Reinforce card ── */
+.rf-header{font-size:1rem;font-weight:700;color:#b45309;margin-bottom:10px}
+.rf-body{font-size:.9rem;line-height:1.7;margin-bottom:12px}
+.rf-ex{background:var(--warn-bg);border:1px solid var(--warn-b);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:.87rem}
+.rf-eq{text-align:center;overflow-x:auto;margin-bottom:6px}
+.rf-eq .katex{font-size:1.1rem}
+.rf-rule{font-size:.8rem;color:var(--warn-t);font-style:italic}
+
+/* ── Progress strip ── */
+.prog-strip{display:flex;gap:10px;align-items:center;margin-bottom:12px;font-size:.78rem;color:var(--muted)}
+.prog-bg{flex:1;background:var(--border);border-radius:8px;height:6px;overflow:hidden}
+.prog{height:100%;background:linear-gradient(90deg,var(--pri),var(--pri-l));border-radius:8px;transition:width .4s}
+.chip{display:inline-block;background:#eff6ff;color:#3b82f6;font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px}
+
+/* ── Equation display ── */
+.eq{background:#f8faff;border:2px solid #e0e7ff;border-radius:12px;padding:16px 20px;text-align:center;margin:14px 0;overflow-x:auto}
+.eq .katex{font-size:1.5rem}
+.eq .katex-display{margin:0}
+
+/* ── Inputs ── */
+.num-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+input[type=number]{width:130px;padding:11px 14px;border:2px solid var(--border);border-radius:10px;font-size:1.1rem;outline:none;transition:border-color .2s;-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=number]:focus{border-color:var(--pri)}
+input[type=number]:disabled{cursor:not-allowed}
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.opt{padding:11px 14px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;font-size:.93rem;display:flex;align-items:center;gap:10px;user-select:none}
+.opt:hover{border-color:var(--pri-l);background:var(--pri-bg)}
+.opt.sel{border-color:var(--pri);background:var(--pri-bg)}
+.opt.right{border-color:var(--ok)!important;background:var(--ok-bg)!important}
+.opt.wrong{border-color:var(--err)!important;background:var(--err-bg)!important}
+.opt-letter{width:26px;height:26px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0}
+.opt.sel .opt-letter{background:var(--pri);color:#fff}
+.vof-row{display:flex;gap:10px;margin-top:10px}
+.vof-btn{flex:1;padding:13px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:.95rem;font-weight:600;transition:all .18s;background:#fff;text-align:center;user-select:none}
+.vof-btn:hover{border-color:var(--pri-l);background:var(--pri-bg)}
+.vof-btn.sel{border-color:var(--pri);background:var(--pri-bg);color:var(--pri)}
+
+/* ── Feedback ── */
+.hint{background:var(--warn-bg);border:1px solid var(--warn-b);border-radius:8px;padding:9px 13px;font-size:.83rem;color:var(--warn-t);margin-top:10px;display:none}
+.fb{border-radius:12px;padding:14px 18px;margin-top:14px;display:none}
+.fb.ok{background:var(--ok-bg);border:1px solid var(--ok-b)}
+.fb.ko{background:var(--err-bg);border:1px solid var(--err-b)}
+.fb-head{display:flex;align-items:center;gap:7px;font-weight:700;margin-bottom:7px;font-size:.95rem}
+.fb.ok .fb-head{color:#16a34a}.fb.ko .fb-head{color:#dc2626}
+.fb-body{font-size:.9rem;line-height:1.7}
+.steps-box{background:#fff;border-radius:8px;padding:11px 14px;margin-top:9px;font-size:.86rem}
+.steps-box b{display:block;margin-bottom:6px;color:var(--muted)}
+.step{display:flex;gap:8px;margin-bottom:6px;align-items:center}
+.snum{width:19px;height:19px;background:var(--pri);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.67rem;font-weight:700;flex-shrink:0}
+.step-math{overflow-x:auto}.step-math .katex{font-size:.95rem}
+
+/* ── Buttons ── */
+.btn-main{width:100%;padding:13px;background:var(--pri);color:#fff;border:none;border-radius:12px;font-size:.97rem;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .2s,transform .1s}
+.btn-main:hover{opacity:.9}.btn-main:active{transform:scale(.98)}
+.btn-main:disabled{opacity:.38;cursor:not-allowed}
+.btn-sec{width:100%;padding:13px;background:#fff;color:var(--pri);border:2px solid var(--pri);border-radius:12px;font-size:.97rem;font-weight:600;cursor:pointer;margin-top:10px;transition:all .18s;display:none}
+.btn-sec:hover{background:var(--pri-bg)}
+.btn-ok{width:100%;padding:13px;background:var(--ok);color:#fff;border:none;border-radius:12px;font-size:.97rem;font-weight:600;cursor:pointer;margin-top:14px;transition:opacity .2s}
+.btn-ok:hover{opacity:.9}
+
+/* ── Confidence bar ── */
+.conf-card{padding:13px 18px}
+.conf-row{display:flex;justify-content:space-between;font-size:.77rem;color:var(--muted);margin-bottom:5px}
+.lev-bar{display:flex;border-radius:8px;overflow:hidden;height:22px}
+.lev-seg{transition:width .5s;display:flex;align-items:center;justify-content:center;font-size:.68rem;color:#fff;font-weight:600;overflow:hidden;white-space:nowrap}
+
+/* ── Results ── */
+.badge-wrap{text-align:center;padding:18px 0 10px}
+.badge{display:inline-block;padding:7px 22px;border-radius:24px;font-size:1.1rem;font-weight:700;margin-bottom:5px}
+.badge.iniciando{background:#fef9c3;color:#854d0e}
+.badge.avanzando{background:#dbeafe;color:#1e40af}
+.badge.dominando{background:#dcfce7;color:#166534}
+.conf-note{font-size:.82rem;color:var(--muted)}
+.prov{background:var(--warn-bg);border:1px solid var(--warn-b);border-radius:10px;padding:11px 15px;font-size:.82rem;color:var(--warn-t);margin-top:11px}
+.stats{display:flex;gap:10px;margin-bottom:14px}
+.sbox{flex:1;background:#f8fafc;border-radius:12px;padding:11px;text-align:center}
+.sval{font-size:1.4rem;font-weight:700;color:var(--pri)}
+.slbl{font-size:.72rem;color:var(--muted);margin-top:2px}
+.sec h3{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;font-weight:700}
+.sec{margin-bottom:14px}
+.ritem{display:flex;gap:9px;align-items:flex-start;margin-bottom:7px;font-size:.9rem;line-height:1.5}
+.ric{font-size:1rem;flex-shrink:0}
+.rec-card{background:#eff6ff;border-radius:11px;padding:14px;margin-top:7px}
+.rec-card h4{font-size:.87rem;font-weight:700;color:#1e40af;margin-bottom:8px}
+.rec-card ul{padding-left:18px;font-size:.87rem;color:var(--text);line-height:1.8}
+
+/* ── Phase summary ── */
+.phase-sum{display:flex;gap:8px;margin-bottom:14px}
+.ph-box{flex:1;border-radius:10px;padding:10px;text-align:center;font-size:.8rem}
+.ph-box.p0{background:#fef9c3;color:#854d0e}
+.ph-box.p1{background:#dbeafe;color:#1e40af}
+.ph-box.p2{background:#dcfce7;color:#166534}
+.ph-box strong{display:block;font-size:1.1rem;margin-bottom:2px}
+
+.intro-icon{font-size:3rem;text-align:center;margin-bottom:10px}
+.intro h2{font-size:1.15rem;font-weight:700;margin-bottom:10px;text-align:center}
+.intro p{font-size:.9rem;line-height:1.7;margin-bottom:9px}
+.intro ul{padding-left:18px;font-size:.88rem;line-height:1.9;color:var(--muted);margin-bottom:14px}
+/* ── Footer ── */
+.site-footer{background:#1e293b;color:#cbd5e1;font-size:.78rem;padding:1.1rem 1.5rem;text-align:center;margin-top:32px;margin-left:-20px;margin-right:-20px}
+.site-footer a{color:#a5b4fc;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.site-footer .sep{margin:0 .5rem;opacity:.4}
+/* ── Help link ── */
+.help-link{text-align:right;font-size:.78rem;margin-bottom:6px}
+.help-link a{color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.help-link a:hover{color:var(--pri)}
+@media(max-width:480px){body{padding:12px}.card{padding:18px}.eq .katex{font-size:1.2rem}.stepper{gap:0}.site-footer{margin-left:-12px;margin-right:-12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="help-link"><a href="ayuda.html" target="_blank">ℹ️ Cómo funciona</a></div>
+  <h1>📐 Despejar la incógnita x</h1>
+  <p class="sub">Itinerario de aprendizaje · 1.º ESO</p>
+
+  <!-- STEPPER (visible in lesson, reinforce and quiz screens) -->
+  <div id="stepper" style="display:none" class="stepper"></div>
+
+  <!-- ① INTRO -->
+  <div id="intro-screen" class="card intro">
+    <div class="intro-icon">🧭</div>
+    <h2>Itinerario de aprendizaje</h2>
+    <p>Recorrerás <strong>tres etapas</strong> progresivas. En cada una se te explicará la técnica, practicarás con ecuaciones y recibirás ayuda si cometes errores.</p>
+    <ul>
+      <li><strong>Etapa 1</strong> — Ecuaciones de una operación</li>
+      <li><strong>Etapa 2</strong> — Ecuaciones de dos pasos</li>
+      <li><strong>Etapa 3</strong> — Ecuaciones con x en ambos lados</li>
+    </ul>
+    <p>Las ecuaciones se generan al azar cada vez, así que nunca verás las mismas dos veces.</p>
+    <button class="btn-main" onclick="startItinerary()">Empezar →</button>
+  </div>
+
+  <!-- ② LESSON -->
+  <div id="lesson-screen" style="display:none" class="card"></div>
+
+  <!-- ③ REINFORCEMENT -->
+  <div id="reinforce-screen" style="display:none" class="card"></div>
+
+  <!-- ③b PHASE REPORT (between phases) -->
+  <div id="phase-report-screen" style="display:none" class="card"></div>
+
+  <!-- ④ QUIZ -->
+  <div id="quiz-screen" style="display:none">
+    <div class="card">
+      <div class="prog-strip">
+        <span id="prog-lbl">Pregunta 1 / 5</span>
+        <div class="prog-bg"><div class="prog" id="prog-bar" style="width:0%"></div></div>
+        <span id="cert-lbl">Certeza: —</span>
+      </div>
+      <div class="chip" id="q-chip"></div>
+      <p id="q-text" style="font-size:1.02rem;font-weight:500;line-height:1.6"></p>
+      <div class="eq" id="q-eq" style="display:none"></div>
+      <div id="input-area"></div>
+      <div class="hint" id="hint-box"></div>
+      <button class="btn-main" id="btn-check" onclick="submitAnswer()" disabled>Comprobar respuesta</button>
+      <div class="fb" id="feedback">
+        <div class="fb-head" id="fb-head"></div>
+        <div class="fb-body" id="fb-body"></div>
+        <div class="steps-box" id="steps-box" style="display:none"></div>
+      </div>
+      <button class="btn-sec" id="btn-next">Siguiente →</button>
+    </div>
+    <div class="card conf-card">
+      <div class="conf-row"><span>Estimación del sistema</span><span id="conf-lbl">—</span></div>
+      <div class="lev-bar">
+        <div class="lev-seg" id="seg-0" style="width:33.33%;background:#fbbf24">Iniciando</div>
+        <div class="lev-seg" id="seg-1" style="width:33.33%;background:#60a5fa">Avanzando</div>
+        <div class="lev-seg" id="seg-2" style="width:33.33%;background:#34d399">Dominando</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⑤ RESULTS -->
+  <div id="results-screen" style="display:none"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script>
+/* ── LaTeX helpers ─────────────────────────────────────── */
+const rEq     = l => katex.renderToString(l,{displayMode:true, throwOnError:false});
+const rInline = l => katex.renderToString(l,{displayMode:false,throwOnError:false});
+const rText   = s => s.replace(/\$([^$]+)\$/g,(_,m)=>katex.renderToString(m,{displayMode:false,throwOnError:false}));
+
+/* ── Random helpers ────────────────────────────────────── */
+const ri  = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const rc  = arr=>arr[Math.floor(Math.random()*arr.length)];
+const sfl = a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+function safeWrong(c){const d=sfl([-4,-3,-2,-1,1,2,3,4,5,-5,6]);for(const x of d){const w=c+x;if(w>=1&&w!==c)return w;}return c+1;}
+function wrongSet(c,n){const s=new Set();for(const d of sfl([-4,-3,-2,-1,1,2,3,4,5,-5,6,7])){if(s.size>=n)break;const w=c+d;if(w>=1&&w!==c)s.add(w);}return [...s].slice(0,n);}
+function mc4(c){const a=sfl([c,...wrongSet(c,3)]);return{opts:a.map(v=>`$x=${v}$`),ans:a.indexOf(c)};}
+const frac=(x,a)=>`\\dfrac{${x}}{${a}}`;
+
+/* ── BAYESIAN ENGINE ───────────────────────────────────── */
+const NH=3,HNAMES=["Iniciando","Avanzando","Dominando"],HCOLORS=["#fbbf24","#60a5fa","#34d399"];
+const THETA=[-2,0,2],A=1.5,P_MIN=0.80;
+function calcHstop(p,n){const r=(1-p)/(n-1);return -p*Math.log2(p)-(n-1)*r*Math.log2(r);}
+const HSTOP=calcHstop(P_MIN,NH);
+const Hent=d=>-d.reduce((s,p)=>p<1e-12?s:s+p*Math.log2(p),0);
+const lik=(ok,hi,q)=>{const p=q.c+(1-q.c)/(1+Math.exp(-A*(THETA[hi]-q.b)));return ok?p:1-p;};
+function updateBeliefs(ok,q){const r=beliefs.map((p,i)=>p*lik(ok,i,q)),s=r.reduce((a,b)=>a+b,0);beliefs=r.map(p=>p/s);}
+function igQ(q){
+  const pA=beliefs.reduce((s,p,i)=>s+p*lik(true,i,q),0),pF=1-pA;
+  if(pA<1e-9||pF<1e-9)return 0;
+  return Hent(beliefs)-(pA*Hent(beliefs.map((p,i)=>p*lik(true,i,q)/pA))+pF*Hent(beliefs.map((p,i)=>p*lik(false,i,q)/pF)));
+}
+function pickFromPool(pool,cats){
+  if(!pool.length)return null;
+  const sc=pool.map(q=>({q,ig:igQ(q)})),mx=Math.max(...sc.map(s=>s.ig)),thr=Math.max(0.02,mx*0.05);
+  const cands=sc.filter(s=>s.ig>=mx-thr),wts=cands.map(s=>1/(1+(cats[s.q.category]||0)));
+  const tot=wts.reduce((a,b)=>a+b,0);let r=Math.random()*tot;
+  for(let i=0;i<cands.length;i++){r-=wts[i];if(r<=0)return cands[i].q;}
+  return cands[cands.length-1].q;
+}
+
+/* ── PHASE DEFINITIONS ─────────────────────────────────── */
+const PHASES=[
+  {label:"Una operación",    sub:"suma, resta, × y ÷", bVal:-1, icon:"🔑"},
+  {label:"Dos pasos",        sub:"dos operaciones",     bVal: 0, icon:"📐"},
+  {label:"x en ambos lados", sub:"ecuaciones completas",bVal: 1, icon:"⚖️"}
+];
+const MIN_Q_PHASE=4, MAX_Q_PHASE=10;
+
+/* Lesson content per phase */
+const LESSONS=[
+  { icon:"🔑", title:"Etapa 1 · Ecuaciones de una operación",
+    intro:"La clave del despeje es aplicar la <strong>operación inversa</strong> a <strong>ambos lados</strong> del signo $=$.",
+    rules:["Si hay $+a$ → resta $a$ a ambos lados",
+           "Si hay $-a$ → suma $a$ a ambos lados",
+           "Si hay $\\times a$ → divide entre $a$",
+           "Si hay $\\div a$ → multiplica por $a$"],
+    exEq:"x+5=12",
+    exSteps:["x+5=12","x+5-5=12-5","x=7"],
+    exNote:"Comprueba: $7+5=12$ ✓"
+  },
+  { icon:"📐", title:"Etapa 2 · Ecuaciones de dos pasos",
+    intro:"Cuando hay <strong>dos operaciones</strong>, deshazlas en <strong>orden inverso</strong>: primero la suma/resta, luego la mult./div.",
+    rules:["1.º Elimina el término independiente (suma o resta)",
+           "2.º Despeja la x dividiendo o multiplicando"],
+    exEq:"2x+3=11",
+    exSteps:["2x+3=11","2x+3-3=11-3","2x=8","2x\\div2=8\\div2","x=4"],
+    exNote:"Comprueba: $2\\cdot4+3=11$ ✓"
+  },
+  { icon:"⚖️", title:"Etapa 3 · x en ambos lados",
+    intro:"Cuando <strong>x aparece en los dos lados</strong>, primero pásalas todas al mismo lado.",
+    rules:["1.º Resta la x del lado con menor coeficiente a ambos lados",
+           "2.º Resuelve la ecuación resultante (uno o dos pasos)"],
+    exEq:"3x+2=x+8",
+    exSteps:["3x+2=x+8","3x-x+2=x-x+8","2x+2=8","2x+2-2=8-2","2x=6","x=3"],
+    exNote:"Comprueba: $3\\cdot3+2=11=1\\cdot3+8$ ✓"
+  }
+];
+
+/* Reinforcement content by category */
+const REINFORCE={
+  suma_resta:{
+    title:"💡 Repaso: suma y resta",
+    body:"Para eliminar un número que <strong>suma o resta</strong> a $x$, aplica lo contrario:",
+    exs:[{eq:"x+4=9",  step:"x=9-4=5",  rule:"Sumaba 4 → restamos 4"},
+         {eq:"x-3=8",  step:"x=8+3=11", rule:"Restaba 3 → sumamos 3"}]
+  },
+  mult_div:{
+    title:"💡 Repaso: multiplicación y división",
+    body:"Para eliminar un número que <strong>multiplica o divide</strong> a $x$, aplica lo contrario:",
+    exs:[{eq:"3x=15",        step:"x=15\\div3=5",  rule:"Multiplicaba por 3 → dividimos entre 3"},
+         {eq:"\\dfrac{x}{4}=2",step:"x=2\\times4=8",rule:"Dividía entre 4 → multiplicamos por 4"}]
+  },
+  dos_pasos:{
+    title:"💡 Repaso: dos pasos",
+    body:"El orden correcto es siempre: <strong>1.º suma/resta → 2.º mult./div.</strong>",
+    exs:[{eq:"4x-2=10",step:"4x=12 \\Rightarrow x=3",rule:"Sumamos 2 y luego dividimos entre 4"}]
+  },
+  op_inversa:{
+    title:"💡 Repaso: operación inversa",
+    body:"Recuerda los pares de operaciones inversas:",
+    exs:[{eq:"+\\,a \\leftrightarrow -\\,a",step:"\\times\\,a \\leftrightarrow \\div\\,a",rule:"Aplica siempre la contraria a la que aparece"}]
+  },
+  detectar_error:{
+    title:"💡 Repaso: comprobar soluciones",
+    body:"Para saber si $x=N$ es la solución, <strong>sustitúyela</strong> y comprueba si ambos lados coinciden.",
+    exs:[{eq:"2x+1=9,\\;x=3?",step:"2\\cdot3+1=7\\neq9",rule:"No es correcto → la solución es x = 4"}]
+  },
+  x_ambos_lados:{
+    title:"💡 Repaso: x en ambos lados",
+    body:"Cuando <strong>x aparece en los dos lados</strong>, primero agrúpalas todas en un solo lado antes de despejar:",
+    exs:[{eq:"3x+2=x+8",step:"3x-x=8-2 \\Rightarrow 2x=6 \\Rightarrow x=3",rule:"Resta la x del lado con menor coeficiente"},
+         {eq:"5x-1=2x+8",step:"5x-2x=8+1 \\Rightarrow 3x=9 \\Rightarrow x=3",rule:"Mueve los números al lado contrario"}]
+  }
+};
+
+/* ── QUESTION GENERATORS ───────────────────────────────── */
+
+/* FÁCIL  b=-1 */
+function gXpA(){const x=ri(1,15),a=ri(1,12),b=x+a;return{b:-1,c:0,category:"suma_resta",type:"num",qt:"¿Cuánto vale x?",eq:`x+${a}=${b}`,ans:x,expl:`Restamos ${a} a ambos lados: $x=${b}-${a}=${x}$.`,steps:[`x+${a}=${b}`,`x+${a}-${a}=${b}-${a}`,`x=${x}`],hint:`Operación inversa de $+${a}$: resta ${a}.`};}
+function gXmA(){const a=ri(1,12),x=ri(a+1,20),b=x-a;return{b:-1,c:0,category:"suma_resta",type:"num",qt:"¿Cuánto vale x?",eq:`x-${a}=${b}`,ans:x,expl:`Sumamos ${a} a ambos lados: $x=${b}+${a}=${x}$.`,steps:[`x-${a}=${b}`,`x-${a}+${a}=${b}+${a}`,`x=${x}`],hint:`Operación inversa de $-${a}$: suma ${a}.`};}
+function gAX(){const a=ri(2,9),x=ri(1,12),b=a*x;return{b:-1,c:0,category:"mult_div",type:"num",qt:"¿Cuánto vale x?",eq:`${a}x=${b}`,ans:x,expl:`Dividimos entre ${a}: $x=${b}\\div${a}=${x}$.`,steps:[`${a}x=${b}`,`${a}x\\div${a}=${b}\\div${a}`,`x=${x}`],hint:`Divide entre ${a}.`};}
+function gXdA(){const a=ri(2,9),q=ri(1,10),x=a*q;return{b:-1,c:0,category:"mult_div",type:"num",qt:"¿Cuánto vale x?",eq:`${frac("x",a)}=${q}`,ans:x,expl:`Multiplicamos por ${a}: $x=${q}\\times${a}=${x}$.`,steps:[`${frac("x",a)}=${q}`,`${frac("x",a)}\\cdot${a}=${q}\\cdot${a}`,`x=${x}`],hint:`Multiplica por ${a}.`};}
+function gOpInvF(){
+  const sub=rc(["add","sub","mul","div"]);let eq,cor,wrg,expl;
+  if(sub==="add"){const x=ri(1,15),a=ri(1,10),b=x+a;eq=`x+${a}=${b}`;cor=`Restar ${a} a ambos lados`;wrg=[`Sumar ${a} a ambos lados`,`Multiplicar por ${a}`,`Dividir entre ${a}`];expl=`La operación inversa de $+${a}$ es restar ${a}$. Resultado: $x=${b}-${a}=${x}$.`;}
+  else if(sub==="sub"){const a=ri(1,10),x=ri(a+1,20),b=x-a;eq=`x-${a}=${b}`;cor=`Sumar ${a} a ambos lados`;wrg=[`Restar ${a} a ambos lados`,`Multiplicar por ${a}`,`Dividir entre ${a}`];expl=`La operación inversa de $-${a}$ es sumar ${a}$. Resultado: $x=${b}+${a}=${x}$.`;}
+  else if(sub==="mul"){const a=ri(2,9),x=ri(1,12),b=a*x;eq=`${a}x=${b}`;cor=`Dividir entre ${a}`;wrg=[`Multiplicar por ${a}`,`Sumar ${a} a ambos lados`,`Restar ${a} a ambos lados`];expl=`La inversa de $\\times${a}$ es dividir entre ${a}$. Resultado: $x=${b}\\div${a}=${x}$.`;}
+  else{const a=ri(2,9),q=ri(1,10),x=a*q;eq=`${frac("x",a)}=${q}`;cor=`Multiplicar por ${a}`;wrg=[`Dividir entre ${a}`,`Sumar ${a} a ambos lados`,`Restar ${a} a ambos lados`];expl=`La inversa de $\\div${a}$ es multiplicar por ${a}$. Resultado: $x=${q}\\times${a}=${x}$.`;}
+  const all=sfl([cor,...wrg]);return{b:-1,c:0.25,category:"op_inversa",type:"mc4",qt:"Para despejar x, ¿qué operación aplicas a ambos lados?",eq,opts:all,ans:all.indexOf(cor),expl,hint:"Aplica siempre la operación contraria a la que aparece."};
+}
+function gDetF(){
+  const sub=rc(["add","sub","mul"]);const useOk=Math.random()<0.5;let eq,x;
+  if(sub==="add"){const xv=ri(1,15),a=ri(1,10),b=xv+a;eq=`x+${a}=${b}`;x=xv;}
+  else if(sub==="sub"){const a=ri(1,10),xv=ri(a+1,20),b=xv-a;eq=`x-${a}=${b}`;x=xv;}
+  else{const a=ri(2,9),xv=ri(1,12),b=a*xv;eq=`${a}x=${b}`;x=xv;}
+  const prop=useOk?x:safeWrong(x),ans=prop===x;
+  const expl=ans?`Sí, correcto: sustituyendo $x=${x}$ la igualdad se cumple ✓.`:`No: $x=${x}$ es la solución correcta. Con $x=${prop}$ la igualdad no se cumple.`;
+  return{b:-1,c:0.5,category:"detectar_error",type:"vof",qt:`Un alumno dice que la solución es $x=${prop}$. ¿Es correcto?`,eq,ans,expl,hint:`Sustituye $x=${prop}$ en la ecuación y comprueba.`};
+}
+
+/* MEDIA  b=0 */
+function gAxpB(){const a=ri(2,6),b=ri(1,10),x=ri(1,10),c=a*x+b;return{b:0,c:0,category:"dos_pasos",type:"num",qt:"¿Cuánto vale x?",eq:`${a}x+${b}=${c}`,ans:x,expl:`1.º Restamos ${b}: $${a}x=${c-b}$. 2.º ÷${a}: $x=${x}$.`,steps:[`${a}x+${b}=${c}`,`${a}x+${b}-${b}=${c}-${b}`,`${a}x=${c-b}`,`x=${c-b}\\div${a}=${x}`],hint:`Resta ${b} primero; luego divide entre ${a}.`};}
+function gAxmB(){const a=ri(2,6),b=ri(1,10),x=ri(2,12),c=a*x-b;if(c<=0)return gAxmB();return{b:0,c:0,category:"dos_pasos",type:"num",qt:"¿Cuánto vale x?",eq:`${a}x-${b}=${c}`,ans:x,expl:`1.º Sumamos ${b}: $${a}x=${c+b}$. 2.º ÷${a}: $x=${x}$.`,steps:[`${a}x-${b}=${c}`,`${a}x-${b}+${b}=${c}+${b}`,`${a}x=${c+b}`,`x=${c+b}\\div${a}=${x}`],hint:`Suma ${b} primero; luego divide entre ${a}.`};}
+function gXdApB(){const a=ri(2,5),r=ri(2,8),b=ri(1,6),c=r+b,x=a*r;return{b:0,c:0,category:"dos_pasos",type:"num",qt:"¿Cuánto vale x?",eq:`${frac("x",a)}+${b}=${c}`,ans:x,expl:`1.º Restamos ${b}: $${frac("x",a)}=${r}$. 2.º ×${a}: $x=${x}$.`,steps:[`${frac("x",a)}+${b}=${c}`,`${frac("x",a)}+${b}-${b}=${c}-${b}`,`${frac("x",a)}=${r}`,`x=${r}\\cdot${a}=${x}`],hint:`Resta ${b} primero; luego multiplica por ${a}.`};}
+function gXdAmB(){const a=ri(2,5),b=ri(1,8),c=ri(2,8),x=a*(b+c);return{b:0,c:0,category:"dos_pasos",type:"num",qt:"¿Cuánto vale x?",eq:`${frac("x",a)}-${b}=${c}`,ans:x,expl:`1.º Sumamos ${b}: $${frac("x",a)}=${b+c}$. 2.º ×${a}: $x=${x}$.`,steps:[`${frac("x",a)}-${b}=${c}`,`${frac("x",a)}-${b}+${b}=${c}+${b}`,`${frac("x",a)}=${b+c}`,`x=${b+c}\\cdot${a}=${x}`],hint:`Suma ${b} primero; luego multiplica por ${a}.`};}
+function gSolMC4M(){
+  const sub=rc(["axpb","axmb","xdivapb"]);let eq,x;
+  if(sub==="axpb"){const a=ri(2,5),b=ri(1,8),xv=ri(1,8),c=a*xv+b;eq=`${a}x+${b}=${c}`;x=xv;}
+  else if(sub==="axmb"){const a=ri(2,5),b=ri(1,8),xv=ri(2,10),c=a*xv-b;if(c<=0)return gSolMC4M();eq=`${a}x-${b}=${c}`;x=xv;}
+  else{const a=ri(2,4),r=ri(2,6),b=ri(1,5),c=r+b;x=a*r;eq=`${frac("x",a)}+${b}=${c}`;}
+  const m=mc4(x);return{b:0,c:0.25,category:"dos_pasos",type:"mc4",qt:"¿Cuál es la solución de la ecuación?",eq,opts:m.opts,ans:m.ans,expl:`La solución es $x=${x}$. Sustitúyela para verificar.`,hint:"Aplica las operaciones inversas en orden."};
+}
+function gOpInvM(){
+  const sub=rc(["axpb","axmb"]);let eq,cor,wrg,expl;
+  if(sub==="axpb"){const a=ri(2,5),b=ri(1,8),x=ri(1,8),c=a*x+b;eq=`${a}x+${b}=${c}`;cor=`Restar ${b} y luego dividir entre ${a}`;wrg=[`Dividir entre ${a} y luego restar ${b}`,`Sumar ${b} y luego dividir entre ${a}`,`Multiplicar por ${a} y luego sumar ${b}`];expl=`1.º Restamos ${b}: $${a}x=${c-b}$. 2.º Dividimos entre ${a}: $x=${x}$.`;}
+  else{const a=ri(2,5),b=ri(1,8),x=ri(2,10),c=a*x-b;if(c<=0)return gOpInvM();eq=`${a}x-${b}=${c}`;cor=`Sumar ${b} y luego dividir entre ${a}`;wrg=[`Dividir entre ${a} y luego sumar ${b}`,`Restar ${b} y luego dividir entre ${a}`,`Multiplicar por ${a} y luego restar ${b}`];expl=`1.º Sumamos ${b}: $${a}x=${c+b}$. 2.º Dividimos entre ${a}: $x=${x}$.`;}
+  const all=sfl([cor,...wrg]);return{b:0,c:0.25,category:"op_inversa",type:"mc4",qt:"¿Cuáles son los pasos correctos para resolver la ecuación?",eq,opts:all,ans:all.indexOf(cor),expl,hint:"Primero deshaz la suma/resta; después la mult./div."};
+}
+function gDetM(){
+  const sub=rc(["axpb","axmb","xdivapb"]);const useOk=Math.random()<0.5;let eq,x;
+  if(sub==="axpb"){const a=ri(2,5),b=ri(1,8),xv=ri(1,8),c=a*xv+b;eq=`${a}x+${b}=${c}`;x=xv;}
+  else if(sub==="axmb"){const a=ri(2,5),b=ri(1,8),xv=ri(2,10),c=a*xv-b;if(c<=0)return gDetM();eq=`${a}x-${b}=${c}`;x=xv;}
+  else{const a=ri(2,4),r=ri(2,6),b=ri(1,5),c=r+b;x=a*r;eq=`${frac("x",a)}+${b}=${c}`;}
+  const prop=useOk?x:safeWrong(x),ans=prop===x;
+  return{b:0,c:0.5,category:"detectar_error",type:"vof",qt:`Un alumno dice que la solución es $x=${prop}$. ¿Es correcto?`,eq,ans,expl:ans?`Sí, correcto: $x=${x}$ satisface la ecuación ✓.`:`No es correcto. La solución es $x=${x}$.`,hint:`Sustituye $x=${prop}$ y comprueba.`};
+}
+
+/* DIFÍCIL  b=1  — todas las preguntas tienen x en ambos lados */
+function gXbs(){let a,c,x,b,d,att=0;do{a=ri(2,7);c=ri(1,a-1);x=ri(1,10);b=ri(1,10);d=b+(a-c)*x;att++;}while((d<=0||d>45)&&att<30);const df=a-c;const steps=[`${a}x+${b}=${c}x+${d}`,`${a}x-${c}x+${b}=${c}x-${c}x+${d}`,df===1?`x+${b}=${d}`:`${df}x+${b}=${d}`,df===1?`x+${b}-${b}=${d}-${b}`:`${df}x+${b}-${b}=${d}-${b}`,df===1?`x=${d-b}`:`${df}x=${d-b}`];if(df>1)steps.push(`x=${d-b}\\div${df}=${x}`);const eq=`${a}x+${b}=${c}x+${d}`;return{b:1,c:0,category:"x_ambos_lados",type:"num",qt:"¿Cuánto vale x?",eq,ans:x,expl:`1.º Restamos $${c}x$: $${df}x+${b}=${d}$. 2.º Restamos ${b}: $${df}x=${d-b}$. 3.º ÷${df}: $x=${x}$.`,steps,hint:`Resta $${c}x$ a ambos lados.`};}
+/* variante con término independiente en ambos lados: ax+b=cx+d con b negativo (ax-b=cx+d) */
+function gXbs2(){let a,c,x,b,d,att=0;do{a=ri(3,8);c=ri(1,a-1);x=ri(1,8);b=ri(1,8);d=(a-c)*x-b;att++;}while((d<=0||d>40)&&att<30);const df=a-c;const steps=[`${a}x-${b}=${c}x+${d}`,`${a}x-${c}x-${b}=${c}x-${c}x+${d}`,df===1?`x-${b}=${d}`:`${df}x-${b}=${d}`,df===1?`x-${b}+${b}=${d}+${b}`:`${df}x-${b}+${b}=${d}+${b}`,df===1?`x=${d+b}`:`${df}x=${d+b}`];if(df>1)steps.push(`x=${d+b}\\div${df}=${x}`);const eq=`${a}x-${b}=${c}x+${d}`;return{b:1,c:0,category:"x_ambos_lados",type:"num",qt:"¿Cuánto vale x?",eq,ans:x,expl:`1.º Restamos $${c}x$: $${df}x-${b}=${d}$. 2.º Sumamos ${b}: $${df}x=${d+b}$. 3.º ÷${df}: $x=${x}$.`,steps,hint:`Pasa la $x$ del lado derecho al izquierdo.`};}
+function gSolMC4H(){let a,c,x,b,d,att=0;do{a=ri(2,6);c=ri(1,a-1);x=ri(1,8);b=ri(1,8);d=b+(a-c)*x;att++;}while((d<=0||d>35)&&att<30);const eq=`${a}x+${b}=${c}x+${d}`;const m=mc4(x);return{b:1,c:0.25,category:"x_ambos_lados",type:"mc4",qt:"¿Cuál es la solución de la ecuación?",eq,opts:m.opts,ans:m.ans,expl:`Agrupamos: $(${a}-${c})x=${d}-${b}$, $x=${x}$.`,hint:"Agrupa las $x$ a un lado y los números al otro."};}
+function gOpInvH(){let a,c,x,b,d,att=0;do{a=ri(2,5);c=ri(1,a-1);x=ri(1,8);b=ri(1,8);d=b+(a-c)*x;att++;}while((d<=0||d>35)&&att<30);const eq=`${a}x+${b}=${c}x+${d}`,cor=`Restar $${c}x$ a ambos lados`,wrg=[`Dividir entre ${a}`,`Sumar ${b} a ambos lados`,`Multiplicar por ${a}`],all=sfl([cor,...wrg]);return{b:1,c:0.25,category:"x_ambos_lados",type:"mc4",qt:"¿Cuál es el primer paso correcto para resolver la ecuación?",eq,opts:all,ans:all.indexOf(cor),expl:`Restamos $${c}x$: $${a-c}x+${b}=${d}$. Luego $x=${x}$.`,hint:"Cuando hay $x$ en ambos lados, pásalas a un solo lado."};}
+function gDetH(){let a,c,x,b,d,att=0;do{a=ri(2,6);c=ri(1,a-1);x=ri(1,8);b=ri(1,8);d=b+(a-c)*x;att++;}while((d<=0||d>35)&&att<30);const eq=`${a}x+${b}=${c}x+${d}`;const useOk=Math.random()<0.5,prop=useOk?x:safeWrong(x),ans=prop===x;return{b:1,c:0.5,category:"x_ambos_lados",type:"vof",qt:`Un alumno dice que la solución es $x=${prop}$. ¿Es correcto?`,eq,ans,expl:ans?`Sí, correcto: $x=${x}$ satisface la ecuación ✓.`:`No es correcto. La solución es $x=${x}$.`,hint:`Sustituye $x=${prop}$ y comprueba.`};}
+
+/* Pool generator */
+function generatePool(){
+  const pool=[],used=new Set();
+  function add(g){let q,att=0;do{q=g();att++;}while(used.has(q.eq)&&att<30);used.add(q.eq);q.id=pool.length+1;pool.push(q);}
+  [gXpA,gXmA,gAX,gXdA,gXpA,gXmA,gOpInvF,gOpInvF,gDetF,gDetF].forEach(g=>add(g));
+  [gAxpB,gAxmB,gXdApB,gXdAmB,gAxpB,gAxmB,gSolMC4M,gOpInvM,gSolMC4M,gDetM].forEach(g=>add(g));
+  [gXbs,gXbs2,gXbs,gXbs2,gXbs,gXbs2,gSolMC4H,gOpInvH,gDetH,gDetH].forEach(g=>add(g));
+  return pool;
+}
+
+/* ── STATE ─────────────────────────────────────────────── */
+const CAT_LABELS={suma_resta:"Suma y resta",mult_div:"Mult. y división",dos_pasos:"Dos operaciones",op_inversa:"Operación inversa",detectar_error:"Detectar errores",x_ambos_lados:"x en ambos lados"};
+let beliefs,QUESTIONS=[],currentQ=null;
+let qCount,okCount,koCount,history,catCounts,selAns,answered,koStreak;
+let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,reinforcedCats,pendingReinforce;
+/* per-phase stats for results */
+let phaseStats=[];
+
+function init(){
+  QUESTIONS=generatePool();
+  beliefs=[1/NH,1/NH,1/NH];
+  qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;
+  currentPhase=0;phaseQCount=0;phaseOkCount=0;phaseErrByCat={};reinforcedCats=new Set();pendingReinforce=null;
+  phaseStats=[];
+}
+
+/* ── SCREEN MANAGEMENT ─────────────────────────────────── */
+const ALL_SCREENS=["intro-screen","lesson-screen","reinforce-screen","phase-report-screen","quiz-screen","results-screen"];
+function showOnly(id){ALL_SCREENS.forEach(s=>document.getElementById(s).style.display=s===id?"block":"none");}
+
+function updateStepper(){
+  const el=document.getElementById("stepper");
+  el.style.display="flex";
+  el.innerHTML=PHASES.map((ph,i)=>{
+    const cls=i<currentPhase?"done":i===currentPhase?"active":"";
+    const lineClass=i<currentPhase?"done":"";
+    const icon=i<currentPhase?"✓":i+1;
+    return (i>0?`<div class="st-line ${lineClass}"></div>`:"")
+      +`<div class="st-item ${cls}"><div class="st-circle">${icon}</div><div class="st-lbl">${ph.label}</div></div>`;
+  }).join("");
+}
+
+/* ── LESSON SCREEN ─────────────────────────────────────── */
+function showLesson(phase){
+  updateStepper();
+  const L=LESSONS[phase];
+  const stepsHtml=L.exSteps.map((s,i)=>`<div class="ex-step"><div class="ex-snum">${i+1}</div><div class="ex-step-math">${rInline(s)}</div></div>`).join("");
+  document.getElementById("lesson-screen").innerHTML=`
+    <div class="lesson-icon">${L.icon}</div>
+    <h2 class="lesson-title">${L.title}</h2>
+    <p class="lesson-intro">${rText(L.intro)}</p>
+    <ul class="lesson-rules">${L.rules.map(r=>`<li>${rText(r)}</li>`).join("")}</ul>
+    <div class="ex-box">
+      <div class="ex-title">Ejemplo resuelto</div>
+      <div class="ex-eq">${rEq(L.exEq)}</div>
+      <div class="ex-steps">${stepsHtml}</div>
+      <div class="ex-note">${rText(L.exNote)}</div>
+    </div>
+    <button class="btn-main" onclick="startPhase()">Practicar esta etapa →</button>`;
+  showOnly("lesson-screen");
+}
+
+function startPhase(){
+  phaseQCount=0;phaseOkCount=0;phaseErrByCat={};reinforcedCats=new Set();pendingReinforce=null;
+  updateStepper();
+  showOnly("quiz-screen");
+  askNextPhaseQuestion();
+}
+
+/* ── REINFORCEMENT SCREEN ──────────────────────────────── */
+function showReinforcement(cat){
+  reinforcedCats.add(cat);pendingReinforce=null;
+  const R=REINFORCE[cat]||REINFORCE["dos_pasos"];
+  const exsHtml=R.exs.map(e=>`
+    <div class="rf-ex">
+      <div class="rf-eq">${rEq(e.eq)}</div>
+      <div style="text-align:center">${rInline(e.step)}</div>
+      ${e.rule?`<div class="rf-rule">${e.rule}</div>`:""}
+    </div>`).join("");
+  document.getElementById("reinforce-screen").innerHTML=`
+    <div class="rf-header">${R.title}</div>
+    <div class="rf-body">${rText(R.body)}</div>
+    ${exsHtml}
+    <button class="btn-ok" onclick="continueAfterReinforce()">Entendido, seguir practicando →</button>`;
+  showOnly("reinforce-screen");
+}
+
+function continueAfterReinforce(){
+  updateStepper();showOnly("quiz-screen");
+  if(isPhaseComplete()) advancePhase();
+  else askNextPhaseQuestion();
+}
+
+/* ── PHASE QUESTION SELECTION ──────────────────────────── */
+function phasePool(){
+  const bVal=PHASES[currentPhase].bVal,used=new Set(history.map(r=>r.q.id));
+  return QUESTIONS.filter(q=>q.b===bVal&&!used.has(q.id));
+}
+function askNextPhaseQuestion(){
+  const pool=phasePool();
+  if(!pool.length){advancePhase();return;}
+  renderQuestion(pickFromPool(pool,catCounts));
+}
+function phaseConverged(){return phaseQCount>=MIN_Q_PHASE&&Hent(beliefs)<HSTOP&&beliefs.indexOf(Math.max(...beliefs))>0;}
+function phasePassed(){return beliefs.indexOf(Math.max(...beliefs))>0;}
+function isPhaseComplete(){return phaseConverged()||phaseQCount>=MAX_Q_PHASE||phasePool().length===0;}
+
+/* ── ADVANCE PHASE ─────────────────────────────────────── */
+function advancePhase(){
+  const passed=phasePassed();
+  phaseStats.push({ok:phaseOkCount,total:phaseQCount,passed});
+  const completed=currentPhase;
+  currentPhase++;
+  if(currentPhase>=PHASES.length){showResults();return;}
+  showPhaseReport(completed);
+}
+
+function showPhaseReport(completed){
+  const ph=PHASES[completed],ps=phaseStats[completed];
+  const passed=ps.passed;
+  const pct=ps.total?Math.round(ps.ok/ps.total*100):0;
+  const scoreColor=pct>=80?'var(--ok)':pct>=60?'#f59e0b':'var(--err)';
+  const errHtml=Object.entries(phaseErrByCat).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1])
+    .map(([c,n])=>`<div class="ritem"><span class="ric">⚠️</span><span>${CAT_LABELS[c]||c} — ${n} error${n>1?'es':''}</span></div>`).join('');
+  const okHtml=!errHtml?`<div class="ritem"><span class="ric">✅</span><span>Sin errores en esta etapa</span></div>`:'';
+  const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx);
+
+  const warningHtml=!passed?`<div class="prov" style="margin-bottom:14px">
+    ⚠️ <strong>Nivel no alcanzado:</strong> el sistema estima que aún estás en fase inicial en esta etapa.
+    Se recomienda repasar la lección antes de continuar.
+  </div>`:'';
+  const headColor=passed?'var(--ok)':'#f59e0b';
+  const headText=passed?`Etapa ${completed+1} superada ✓`:`Etapa ${completed+1} completada`;
+  const scoreMsg=passed
+    ?(pct>=80?'¡Muy bien! Lista/o para la siguiente etapa.':'Buen progreso. La siguiente etapa te ayudará a consolidar.')
+    :'Dedica más tiempo a esta técnica antes de avanzar.';
+  const nextBtns=passed
+    ?`<button class="btn-main" onclick="showLesson(${currentPhase})">Comenzar Etapa ${currentPhase+1} →</button>`
+    :`<button class="btn-main" onclick="retryPhase(${completed})">Repasar la lección e intentarlo de nuevo →</button>
+      <button class="btn-sec" style="display:block" onclick="showLesson(${currentPhase})">Continuar de todas formas →</button>`;
+
+  updateStepper();
+  document.getElementById('phase-report-screen').innerHTML=`
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:2.2rem">${ph.icon}</div>
+      <h2 style="font-size:1.1rem;font-weight:700;color:${headColor};margin:8px 0 4px">${headText}</h2>
+      <div style="font-size:.83rem;color:var(--muted)">${ph.label} · ${ph.sub}</div>
+    </div>
+    ${warningHtml}
+    <div class="stats">
+      <div class="sbox"><div class="sval" style="color:${scoreColor}">${ps.ok}/${ps.total}</div><div class="slbl">Aciertos</div></div>
+      <div class="sbox"><div class="sval">${pct}%</div><div class="slbl">Correctas</div></div>
+      <div class="sbox"><div class="sval" style="color:${HCOLORS[mxi]};font-size:.95rem;font-weight:700">${HNAMES[mxi]}</div><div class="slbl">Nivel</div></div>
+    </div>
+    <div class="sec"><h3>${errHtml?'Categorías con errores':'Resultado'}</h3>${errHtml}${okHtml}</div>
+    <p style="font-size:.88rem;color:var(--muted);text-align:center;margin-bottom:4px">${scoreMsg}</p>
+    ${nextBtns}`;
+  showOnly('phase-report-screen');
+}
+
+function retryPhase(phaseIndex){
+  currentPhase=phaseIndex;
+  phaseStats=phaseStats.slice(0,phaseIndex);
+  history=history.filter(r=>r.phase<phaseIndex);
+  catCounts={};history.forEach(r=>{catCounts[r.q.category]=(catCounts[r.q.category]||0)+1;});
+  qCount=history.length;okCount=history.filter(r=>r.ok).length;koCount=history.filter(r=>!r.ok).length;
+  showLesson(phaseIndex);
+}
+
+/* ── RENDER QUESTION ───────────────────────────────────── */
+function renderQuestion(q){
+  if(!q){advancePhase();return;}
+  currentQ=q;answered=false;selAns=null;
+  document.getElementById("q-chip").textContent=CAT_LABELS[q.category]||q.category;
+  document.getElementById("q-text").innerHTML=rText(q.qt);
+  const eqEl=document.getElementById("q-eq");
+  if(q.eq){eqEl.innerHTML=rEq(q.eq);eqEl.style.display="block";}else eqEl.style.display="none";
+  const area=document.getElementById("input-area"),chk=document.getElementById("btn-check");
+  if(q.type==="num"){
+    area.innerHTML=`<div class="num-row"><span>${rInline("x =")}</span><input type="number" id="ni" placeholder="?" autocomplete="off" oninput="document.getElementById('btn-check').disabled=this.value===''" onkeydown="if(event.key==='Enter')submitAnswer()"></div>`;
+    chk.disabled=true;setTimeout(()=>document.getElementById("ni")?.focus(),60);
+  } else if(q.type==="mc4"){
+    area.innerHTML=`<div class="opts">${q.opts.map((o,i)=>`<div class="opt" id="o${i}" onclick="pickMC(${i})"><div class="opt-letter">${"ABCD"[i]}</div><span>${rText(o)}</span></div>`).join("")}</div>`;
+    chk.disabled=true;
+  } else {
+    area.innerHTML=`<div class="vof-row"><button class="vof-btn" id="v-si" onclick="pickVOF(true)">✓ Sí, es correcto</button><button class="vof-btn" id="v-no" onclick="pickVOF(false)">✗ No es correcto</button></div>`;
+    chk.disabled=true;
+  }
+  document.getElementById("hint-box").style.display="none";
+  const fb=document.getElementById("feedback");fb.style.display="none";fb.className="fb";
+  document.getElementById("steps-box").style.display="none";
+  chk.style.display="block";
+  const nxt=document.getElementById("btn-next");nxt.style.display="none";nxt.onclick=null;
+  updateProgStrip();
+}
+
+function pickMC(i){document.querySelectorAll(".opt").forEach((el,j)=>el.classList.toggle("sel",j===i));selAns=i;document.getElementById("btn-check").disabled=false;}
+function pickVOF(v){selAns=v;document.getElementById("v-si").classList.toggle("sel",v===true);document.getElementById("v-no").classList.toggle("sel",v===false);document.getElementById("btn-check").disabled=false;}
+
+/* ── SUBMIT ANSWER ─────────────────────────────────────── */
+function submitAnswer(){
+  if(answered)return;
+  const q=currentQ;let ok;
+  if(q.type==="num"){const v=parseFloat(document.getElementById("ni").value);if(isNaN(v))return;ok=Math.abs(v-q.ans)<0.01;selAns=v;}
+  else if(q.type==="mc4"){if(selAns===null)return;ok=selAns===q.ans;}
+  else{if(selAns===null)return;ok=selAns===q.ans;}
+
+  answered=true;qCount++;phaseQCount++;
+  ok?(okCount++,phaseOkCount++,koStreak=0):(koCount++,koStreak++);
+  catCounts[q.category]=(catCounts[q.category]||0)+1;
+  if(!ok){phaseErrByCat[q.category]=(phaseErrByCat[q.category]||0)+1;}
+  history.push({q,ok,phase:currentPhase});
+  updateBeliefs(ok,q);
+
+  /* hint after 2 consecutive errors */
+  if(!ok&&koStreak>=2&&q.hint){const hb=document.getElementById("hint-box");hb.innerHTML=`💡 <strong>Pista:</strong> ${rText(q.hint)}`;hb.style.display="block";}
+
+  /* feedback */
+  const fb=document.getElementById("feedback");fb.style.display="block";fb.className="fb "+(ok?"ok":"ko");
+  document.getElementById("fb-head").innerHTML=ok?"✓ ¡Correcto!":"✗ No es correcto";
+  document.getElementById("fb-body").innerHTML=rText(q.expl);
+  const stEl=document.getElementById("steps-box");
+  if(!ok&&q.steps){stEl.style.display="block";stEl.innerHTML="<b>Solución paso a paso:</b>"+q.steps.map((s,i)=>`<div class="step"><div class="snum">${i+1}</div><div class="step-math">${rInline(s)}</div></div>`).join("");}
+  else stEl.style.display="none";
+
+  /* lock inputs */
+  if(q.type==="num"){const el=document.getElementById("ni");el.disabled=true;el.style.borderColor=ok?"var(--ok)":"var(--err)";el.style.background=ok?"var(--ok-bg)":"var(--err-bg)";}
+  else if(q.type==="mc4"){document.querySelectorAll(".opt").forEach((el,i)=>{el.style.pointerEvents="none";if(i===q.ans)el.classList.add("right");else if(i===selAns&&!ok)el.classList.add("wrong");});}
+  else{["v-si","v-no"].forEach(id=>document.getElementById(id).style.pointerEvents="none");const ri2=q.ans?"v-si":"v-no",wi=q.ans?"v-no":"v-si";document.getElementById(ri2).style.cssText+=";border-color:var(--ok);background:var(--ok-bg);color:#16a34a";if(!ok)document.getElementById(wi).style.cssText+=";border-color:var(--err);background:var(--err-bg)";}
+
+  document.getElementById("btn-check").style.display="none";
+  updateProgStrip();
+
+  /* determine next action */
+  const needReinforce=!ok&&(phaseErrByCat[q.category]||0)>=2&&!reinforcedCats.has(q.category);
+  pendingReinforce=needReinforce?q.category:null;
+  const phDone=isPhaseComplete();
+  const nxt=document.getElementById("btn-next");nxt.style.display="block";
+
+  if(pendingReinforce){
+    nxt.textContent="Ver repaso de la técnica →";
+    nxt.onclick=()=>showReinforcement(pendingReinforce);
+  } else if(phDone){
+    const passed=phasePassed();
+    if(currentPhase<PHASES.length-1){nxt.textContent=passed?"Ver resumen de la etapa →":"⚠️ Ver resumen de la etapa";nxt.onclick=advancePhase;}
+    else{nxt.textContent="Ver mi informe final →";nxt.onclick=advancePhase;}
+  } else {
+    nxt.textContent="Siguiente pregunta →";nxt.onclick=askNextPhaseQuestion;
+  }
+  updateBeliefsBar();
+}
+
+/* ── UI helpers ────────────────────────────────────────── */
+function updateProgStrip(){
+  const pct=Math.min(100,phaseQCount/MAX_Q_PHASE*100);
+  document.getElementById("prog-bar").style.width=pct+"%";
+  document.getElementById("prog-lbl").textContent=`Etapa ${currentPhase+1} · ${phaseQCount}/${MAX_Q_PHASE}`;
+  const cp=Math.round((1-Hent(beliefs)/Math.log2(NH))*100);
+  document.getElementById("cert-lbl").textContent=`Certeza: ${cp}%`;
+}
+function updateBeliefsBar(){
+  const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx);
+  document.getElementById("conf-lbl").textContent=`${HNAMES[mxi]}: ${Math.round(mx*100)}%`;
+  beliefs.forEach((p,i)=>{const s=document.getElementById(`seg-${i}`),w=(p*100).toFixed(1);s.style.width=w+"%";s.style.background=HCOLORS[i];s.textContent=parseFloat(w)>9?`${HNAMES[i]} ${Math.round(w)}%`:"";});
+}
+
+/* ── RESULTS ───────────────────────────────────────────── */
+function showResults(){
+  /* ensure last phase is saved */
+  if(phaseStats.length<PHASES.length) phaseStats.push({ok:phaseOkCount,total:phaseQCount});
+
+  document.getElementById("stepper").style.display="none";
+  showOnly("results-screen");
+  const el=document.getElementById("results-screen");
+
+  const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx),lvl=HNAMES[mxi];
+  const prov=Hent(beliefs)>=HSTOP||mx<P_MIN;
+
+  const errByCat={};history.filter(r=>!r.ok).forEach(r=>{errByCat[r.q.category]=(errByCat[r.q.category]||0)+1;});
+  const weak=Object.entries(errByCat).sort((a,b)=>b[1]-a[1]).map(([c])=>CAT_LABELS[c]||c);
+  const strong=Object.keys(catCounts).filter(c=>!(c in errByCat)).map(c=>CAT_LABELS[c]||c);
+
+  const phSumHtml=phaseStats.slice(0,3).map((ps,i)=>{
+    const pct=ps.total?Math.round(ps.ok/ps.total*100):0;
+    const cls=["p0","p1","p2"][i];
+    const badge=ps.passed===false?'<span style="font-size:.7rem;background:#fef2f2;color:#dc2626;border-radius:8px;padding:1px 6px;margin-left:4px">No superada</span>':'';
+    return `<div class="ph-box ${cls}"><strong>${ps.ok}/${ps.total}</strong>${PHASES[i].label}${badge}<br><span style="font-size:.75rem">${pct}% correctas</span></div>`;
+  }).join("");
+
+  const diagMap={
+    Iniciando:"Estás comenzando a comprender el despeje. Reconoces la operación inversa pero aún necesitas consolidar los procedimientos paso a paso.",
+    Avanzando:"Buen progreso: resuelves ecuaciones básicas y de dos pasos con seguridad. Sigue practicando los casos más complejos.",
+    Dominando:"Demuestras dominio sólido del despeje de x, incluidas las ecuaciones con incógnita en ambos lados."
+  };
+  const recMap={
+    Iniciando:{title:"📚 Sigue avanzando",items:["Repasa las <strong>ecuaciones de una operación</strong> hasta que te resulten automáticas.","Practica la <strong>comprobación</strong>: sustituye $x$ al final para verificar.","Cuando te sientas seguro, vuelve a la etapa 2 del itinerario."]},
+    Avanzando:{title:"📈 Para consolidar",items:["Practica más ecuaciones de <strong>dos pasos</strong> con distintas combinaciones.","Trabaja la <strong>verificación de resultados</strong> como hábito.","Cuando estés listo, repasa la etapa 3 del itinerario."]},
+    Dominando:{title:"🚀 Siguiente nivel",items:["Prueba ecuaciones con <strong>paréntesis</strong> (ej.: $2(x+3)=10$).","Explora <strong>ecuaciones con fracciones</strong> (ej.: $\\frac{x}{2}+\\frac{x}{3}=5$).","Aplica ecuaciones en <strong>problemas con contexto</strong>."]}
+  };
+  const rec=recMap[lvl];
+  const provH=prov?`<div class="prov">⚠️ <strong>Diagnóstico provisional:</strong> el sistema no alcanzó suficiente certeza. El resultado es orientativo.</div>`:"";
+  const stH=strong.length?`<div class="sec"><h3>Puntos fuertes</h3>${strong.map(a=>`<div class="ritem"><span class="ric">✅</span><span>${a}</span></div>`).join("")}</div>`:"";
+  const wkH=weak.length?`<div class="sec"><h3>Áreas a reforzar</h3>${weak.map(a=>`<div class="ritem"><span class="ric">⚠️</span><span>${a}</span></div>`).join("")}</div>`:"";
+
+  el.innerHTML=`
+    <div class="card">
+      <div class="badge-wrap">
+        <div style="font-size:.82rem;color:var(--muted);margin-bottom:6px">Progreso estimado</div>
+        <div class="badge ${lvl.toLowerCase()}">${lvl}</div>
+        <div class="conf-note">Certeza: ${Math.round(mx*100)}%</div>
+      </div>${provH}
+    </div>
+    <div class="card">
+      <div class="stats">
+        <div class="sbox"><div class="sval">${qCount}</div><div class="slbl">Preguntas</div></div>
+        <div class="sbox"><div class="sval" style="color:var(--ok)">${okCount}</div><div class="slbl">Correctas</div></div>
+        <div class="sbox"><div class="sval" style="color:var(--err)">${koCount}</div><div class="slbl">Incorrectas</div></div>
+      </div>
+      <div class="sec"><h3>Resultado por etapa</h3><div class="phase-sum">${phSumHtml}</div></div>
+      <div class="sec"><h3>Diagnóstico</h3><div class="ritem"><span class="ric">📊</span><span>${diagMap[lvl]}</span></div></div>
+      ${stH}${wkH}
+      <div class="sec"><h3>Próximos pasos</h3>
+        <div class="rec-card"><h4>${rec.title}</h4>
+          <ul>${rec.items.map(i=>`<li>${rText(i)}</li>`).join("")}</ul>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:14px;margin-bottom:24px">
+      <button class="btn-main" style="max-width:260px" onclick="restartItinerary()">Repetir el itinerario</button>
+    </div>`;
+}
+
+function startItinerary(){init();showLesson(0);}
+function restartItinerary(){init();showLesson(0);}
+</script>
+
+<footer class="site-footer">
+  © <a href="https://bilateria.org" target="_blank" rel="noopener">Juan José de Haro</a>
+  <span class="sep">·</span>
+  Contenido: <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>
+  <span class="sep">·</span>
+  Código: <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a>
+</footer>
+</body>
+</html>

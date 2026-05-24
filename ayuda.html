@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cómo funciona · Itinerario Bayesiano</title>
+<style>
+:root{
+  --pri:#4f46e5;--pri-l:#818cf8;--pri-bg:#eff0ff;
+  --ok:#22c55e;--ok-bg:#f0fdf4;
+  --warn-bg:#fffbeb;--warn-b:#fde68a;--warn-t:#92400e;
+  --bg:#f1f5f9;--card:#fff;--text:#1e293b;--muted:#64748b;--border:#e2e8f0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px 20px 0}
+.wrap{max-width:720px;margin:0 auto;padding-bottom:60px}
+h1{font-size:1.5rem;color:var(--pri);font-weight:700;text-align:center;margin-bottom:6px}
+.sub{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:28px}
+h2{font-size:1.1rem;font-weight:700;color:var(--pri);margin:28px 0 10px;display:flex;align-items:center;gap:8px}
+h3{font-size:.95rem;font-weight:700;color:var(--text);margin:16px 0 8px}
+p{font-size:.92rem;line-height:1.75;margin-bottom:10px;color:var(--text)}
+ul,ol{padding-left:20px;font-size:.9rem;line-height:1.9;color:var(--text);margin-bottom:10px}
+.card{background:var(--card);border-radius:16px;padding:22px 26px;box-shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);margin-bottom:16px}
+.tag{display:inline-block;background:var(--pri-bg);color:var(--pri);font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.05em;margin-right:6px;margin-bottom:4px}
+.phase-row{display:flex;gap:12px;margin:12px 0;flex-wrap:wrap}
+.ph{flex:1;min-width:160px;border-radius:12px;padding:14px;font-size:.85rem;line-height:1.6}
+.ph.p0{background:#fef9c3;color:#854d0e}
+.ph.p1{background:#dbeafe;color:#1e40af}
+.ph.p2{background:#dcfce7;color:#166534}
+.ph strong{display:block;font-size:1rem;margin-bottom:4px}
+.flow{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.flow-step{display:flex;gap:12px;align-items:flex-start;font-size:.9rem;line-height:1.6}
+.flow-num{width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.formula{background:#f8faff;border:2px solid #e0e7ff;border-radius:10px;padding:12px 16px;font-family:monospace;font-size:.87rem;color:#3730a3;margin:10px 0;overflow-x:auto}
+.note{background:var(--warn-bg);border:1px solid var(--warn-b);border-radius:10px;padding:11px 15px;font-size:.85rem;color:var(--warn-t);margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:.87rem;margin:10px 0}
+th{background:var(--pri-bg);color:var(--pri);font-weight:700;padding:8px 12px;text-align:left}
+td{padding:7px 12px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;background:var(--pri);color:#fff;text-decoration:none;padding:10px 20px;border-radius:10px;font-size:.9rem;font-weight:600;margin-bottom:24px;transition:opacity .2s}
+.back-btn:hover{opacity:.88}
+.site-footer{background:#1e293b;color:#cbd5e1;font-size:.78rem;padding:1.1rem 1.5rem;text-align:center;margin-top:40px;margin-left:-20px;margin-right:-20px}
+.site-footer a{color:#a5b4fc;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.site-footer .sep{margin:0 .5rem;opacity:.4}
+@media(max-width:480px){body{padding:14px 14px 0}.card{padding:16px 18px}.phase-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-btn" href="index.html">← Volver al itinerario</a>
+
+  <h1>🧭 Cómo funciona el itinerario</h1>
+  <p class="sub">Guía técnica y pedagógica del sistema de aprendizaje adaptativo bayesiano</p>
+
+  <!-- ESTRUCTURA GENERAL -->
+  <div class="card">
+    <h2>📚 Estructura del itinerario</h2>
+    <p>El itinerario está dividido en <strong>tres etapas progresivas</strong>. Cada etapa introduce una técnica de despeje, proporciona práctica adaptativa y ofrece refuerzo cuando se detectan dificultades.</p>
+    <div class="phase-row">
+      <div class="ph p0"><strong>🔑 Etapa 1</strong>Ecuaciones de una operación<br><small>suma, resta, × y ÷</small></div>
+      <div class="ph p1"><strong>📐 Etapa 2</strong>Ecuaciones de dos pasos<br><small>dos operaciones combinadas</small></div>
+      <div class="ph p2"><strong>⚖️ Etapa 3</strong>x en ambos lados<br><small>ecuaciones completas</small></div>
+    </div>
+    <p>No se puede saltar ninguna etapa: el sistema evalúa si el alumno ha alcanzado el nivel mínimo antes de permitir el avance.</p>
+  </div>
+
+  <!-- FLUJO DE CADA ETAPA -->
+  <div class="card">
+    <h2>🔄 Flujo de cada etapa</h2>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div><strong>Lección</strong> — Explicación de la técnica con reglas y un ejemplo resuelto paso a paso. El alumno la lee y pulsa "Practicar".</div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div><strong>Preguntas adaptativas</strong> — El motor bayesiano selecciona las preguntas más informativas según el historial de respuestas. Mínimo 4, máximo 10 por etapa.</div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div><strong>Refuerzo puntual</strong> (si es necesario) — Si el alumno comete 2 errores en la misma categoría de ejercicio, aparece una tarjeta de repaso antes de continuar. Cada categoría se refuerza como máximo una vez por etapa.</div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div><strong>Resumen de etapa</strong> — Aciertos, porcentaje y nivel estimado. Si el sistema detecta que el alumno no ha alcanzado el nivel, sugiere repasar la lección antes de continuar.</div></div>
+    </div>
+  </div>
+
+  <!-- MOTOR BAYESIANO -->
+  <div class="card">
+    <h2>🧠 Motor bayesiano adaptativo</h2>
+    <p>El sistema mantiene una <strong>distribución de probabilidad</strong> sobre tres hipótesis de nivel del alumno:</p>
+    <table>
+      <tr><th>Hipótesis</th><th>Interpretación</th><th>θ (habilidad)</th></tr>
+      <tr><td>Iniciando</td><td>Aún construyendo las bases</td><td>−2</td></tr>
+      <tr><td>Avanzando</td><td>Progresa con solidez</td><td>0</td></tr>
+      <tr><td>Dominando</td><td>Dominio consolidado</td><td>+2</td></tr>
+    </table>
+    <p>Tras cada respuesta, las creencias se actualizan mediante el <strong>teorema de Bayes</strong>:</p>
+    <div class="formula">P(Hᵢ | respuesta) = P(respuesta | Hᵢ) · P(Hᵢ) / Σ P(respuesta | Hⱼ) · P(Hⱼ)</div>
+    <p>La verosimilitud P(respuesta | Hᵢ) se calcula con el <strong>modelo logístico IRT de 3 parámetros</strong>:</p>
+    <div class="formula">P(acierto | Hᵢ, q) = c + (1−c) / (1 + exp(−a·(θᵢ − b_q)))</div>
+    <ul>
+      <li><strong>θᵢ</strong>: habilidad de la hipótesis i</li>
+      <li><strong>b_q</strong>: dificultad de la pregunta (−1 fácil, 0 media, +1 difícil)</li>
+      <li><strong>a = 1.5</strong>: discriminación (pendiente de la curva)</li>
+      <li><strong>c</strong>: probabilidad de acierto por azar (0 en numéricas, 0.25 en MC4, 0.5 en V/F)</li>
+    </ul>
+  </div>
+
+  <!-- SELECCIÓN DE PREGUNTAS -->
+  <div class="card">
+    <h2>🎯 Selección adaptativa de preguntas</h2>
+    <p>En cada turno, el sistema elige la pregunta que maximiza la <strong>ganancia de información</strong> (reducción de entropía de Shannon):</p>
+    <div class="formula">IG(q) = H(creencias) − [P(acierto)·H(post_acierto) + P(fallo)·H(post_fallo)]</div>
+    <p>Entre las preguntas con ganancia similar, se aplica un <strong>peso de diversidad</strong> para evitar repetir la misma categoría:</p>
+    <div class="formula">peso(q) = 1 / (1 + veces_vista_categoría)</div>
+    <p>Las preguntas se generan <strong>aleatoriamente</strong> cada sesión (parámetros numéricos al azar, soluciones siempre enteras), por lo que nunca se repiten exactamente.</p>
+  </div>
+
+  <!-- CONDICIÓN DE PARADA -->
+  <div class="card">
+    <h2>🛑 Condición de parada por etapa</h2>
+    <p>Una etapa finaliza cuando se cumple <strong>cualquiera</strong> de estas condiciones:</p>
+    <ol>
+      <li><strong>Convergencia bayesiana</strong>: tras mínimo 4 preguntas, la entropía de las creencias cae por debajo del umbral H<sub>stop</sub> <em>y</em> la hipótesis más probable no es "Iniciando" → el sistema tiene suficiente certeza de que el alumno domina la técnica.</li>
+      <li><strong>Máximo alcanzado</strong>: se han respondido 10 preguntas sin converger.</li>
+    </ol>
+    <div class="formula">H_stop = −p_min·log₂(p_min) − (1−p_min)·log₂((1−p_min)/(n−1))   con p_min = 0.80</div>
+    <div class="note">⚠️ Si se alcanza el máximo de 10 preguntas y el nivel estimado sigue siendo "Iniciando", el sistema avisa al alumno y recomienda repasar la lección antes de continuar.</div>
+  </div>
+
+  <!-- TIPOS DE PREGUNTAS -->
+  <div class="card">
+    <h2>✏️ Tipos de preguntas</h2>
+    <p>Cada etapa dispone de un banco de 10 preguntas generadas al azar, combinando tres formatos:</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0">
+      <span class="tag">Numérica</span><span style="font-size:.88rem;color:var(--muted)">El alumno escribe el valor de x</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0">
+      <span class="tag">Opción múltiple</span><span style="font-size:.88rem;color:var(--muted)">4 opciones: solución o procedimiento correcto</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0">
+      <span class="tag">Verdadero / Falso</span><span style="font-size:.88rem;color:var(--muted)">Detectar si una solución propuesta es correcta</span>
+    </div>
+    <p>Las preguntas se distribuyen en cinco categorías de habilidad: <em>suma y resta</em>, <em>multiplicación y división</em>, <em>dos operaciones</em>, <em>operación inversa</em> y <em>detectar errores</em>. En la Etapa 3 se añade <em>x en ambos lados</em>.</p>
+  </div>
+
+  <!-- INFORME FINAL -->
+  <div class="card">
+    <h2>📊 Informe final</h2>
+    <p>Al completar las tres etapas, el sistema genera un informe que incluye:</p>
+    <ul>
+      <li>Nivel estimado global con porcentaje de certeza</li>
+      <li>Resultado detallado por etapa (aciertos, porcentaje, si fue superada)</li>
+      <li>Categorías dominadas y categorías a reforzar</li>
+      <li>Recomendaciones de próximos pasos personalizadas según el nivel</li>
+    </ul>
+    <p>Si la incertidumbre final sigue siendo alta (entropía ≥ H<sub>stop</sub>), el diagnóstico se marca como <strong>provisional</strong>.</p>
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  © <a href="https://bilateria.org" target="_blank" rel="noopener">Juan José de Haro</a>
+  <span class="sep">·</span>
+  Contenido: <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>
+  <span class="sep">·</span>
+  Código: <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a>
+</footer>
+</body>
+</html>
