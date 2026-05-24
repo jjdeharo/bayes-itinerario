@@ -156,10 +156,10 @@ tr:last-child td{border-bottom:none}
     <p>La verosimilitud de cada respuesta se calcula con el <strong>modelo logístico IRT de 3 parámetros (3PL)</strong>:</p>
     <div class="formula-box" id="f-irt"></div>
     <ul class="param-list">
-      <li><span class="param-key">θᵢ</span>habilidad asociada a la hipótesis i</li>
-      <li><span class="param-key">b_q</span>dificultad de la pregunta (−1 fácil, 0 media, +1 difícil)</li>
-      <li><span class="param-key">a</span>discriminación — pendiente de la curva logística (a = 1.5)</li>
-      <li><span class="param-key">c</span>probabilidad de acierto por azar: 0 (numérica), 0.25 (opción múltiple), 0.5 (V/F)</li>
+      <li><span class="param-key" id="pk-theta"></span>habilidad asociada a la hipótesis i</li>
+      <li><span class="param-key" id="pk-bq"></span>dificultad de la pregunta (−1 fácil, 0 media, +1 difícil)</li>
+      <li><span class="param-key" id="pk-a"></span>discriminación — pendiente de la curva logística (a = 1.5)</li>
+      <li><span class="param-key" id="pk-c"></span>probabilidad de acierto por azar: 0 (numérica), 0.25 (opción múltiple), 0.5 (V/F)</li>
     </ul>
   </div>
 
@@ -212,6 +212,10 @@ rd('f-hstop', 'H_{\\text{stop}} = -p_{\\min}\\log_2 p_{\\min} - (1-p_{\\min})\\l
 ri('t0','\\theta = -2');
 ri('t1','\\theta = 0');
 ri('t2','\\theta = +2');
+ri('pk-theta','\\theta_i');
+ri('pk-bq','b_q');
+ri('pk-a','a');
+ri('pk-c','c');
 </script>
 </body>
 </html>
