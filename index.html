@@ -38,10 +38,16 @@ h1{font-size:1.4rem;color:var(--pri);font-weight:700;text-align:center}
 .lesson-icon{font-size:2.4rem;text-align:center;margin-bottom:10px}
 .lesson-title{font-size:1.1rem;font-weight:700;text-align:center;color:var(--pri);margin-bottom:14px}
 .lesson-intro{font-size:.92rem;line-height:1.75;margin-bottom:14px}
-.lesson-rules{background:var(--pri-bg);border-radius:10px;padding:12px 16px;margin-bottom:16px;list-style:none}
-.lesson-rules li{font-size:.88rem;line-height:1.9;display:flex;gap:8px;align-items:center}
+.lesson-rules{background:var(--pri-bg);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+.rule-row{font-size:.88rem;line-height:1.9;display:flex;gap:8px;align-items:center}
 .lesson-rules .katex{vertical-align:middle}
-.lesson-rules li::before{content:"→";color:var(--pri);font-weight:700;flex-shrink:0}
+.rule-arr{color:var(--pri);font-weight:700;flex-shrink:0}
+.rule-text{flex:1}
+.rule-ex-btn{font-size:.7rem;color:var(--pri);background:none;border:1px solid var(--pri-l);border-radius:20px;padding:2px 9px;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:all .15s}
+.rule-ex-btn:hover,.rule-ex-btn.open{background:var(--pri);color:#fff;border-color:var(--pri)}
+.rule-ex-box{background:#fff;border-radius:8px;padding:10px 14px;margin:2px 0 6px 20px;border:1px solid #e0e7ff}
+.btn-gen-ex{background:none;border:1px solid var(--pri-l);color:var(--pri);border-radius:8px;padding:7px 14px;font-size:.83rem;cursor:pointer;margin-top:10px;width:100%;transition:all .18s;font-weight:600}
+.btn-gen-ex:hover{background:var(--pri);color:#fff}
 .ex-box{background:#f8faff;border:2px solid #e0e7ff;border-radius:12px;padding:14px 18px;margin-bottom:14px}
 .ex-title{font-size:.73rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:10px}
 .ex-eq{text-align:center;margin-bottom:10px;overflow-x:auto}
@@ -289,7 +295,13 @@ const LESSONS=[
            "Si hay $\\div a$ → multiplica por $a$"],
     exEq:"x+5=12",
     exSteps:["x+5=12","x+5-5=12-5","x=7"],
-    exNote:"Comprueba: $7+5=12$ ✓"
+    exNote:"Comprueba: $7+5=12$ ✓",
+    ruleExamples:[
+      {eq:"x+5=12",steps:["x+5=12","x+5-5=12-5","x=7"],note:"Comprueba: $7+5=12$ ✓"},
+      {eq:"x-3=8",steps:["x-3=8","x-3+3=8+3","x=11"],note:"Comprueba: $11-3=8$ ✓"},
+      {eq:"3x=15",steps:["3x=15","3x\\div3=15\\div3","x=5"],note:"Comprueba: $3\\cdot5=15$ ✓"},
+      {eq:"\\dfrac{x}{4}=2",steps:["\\dfrac{x}{4}=2","\\dfrac{x}{4}\\cdot4=2\\cdot4","x=8"],note:"Comprueba: $8\\div4=2$ ✓"}
+    ]
   },
   { icon:"📐", title:"Etapa 2 · Ecuaciones de dos pasos",
     intro:"Cuando hay <strong>dos operaciones</strong>, deshazlas en <strong>orden inverso</strong>: primero la suma/resta, luego la mult./div.",
@@ -297,7 +309,11 @@ const LESSONS=[
            "2.º Despeja la x dividiendo o multiplicando"],
     exEq:"2x+3=11",
     exSteps:["2x+3=11","2x+3-3=11-3","2x=8","2x\\div2=8\\div2","x=4"],
-    exNote:"Comprueba: $2\\cdot4+3=11$ ✓"
+    exNote:"Comprueba: $2\\cdot4+3=11$ ✓",
+    ruleExamples:[
+      {eq:"2x+3=11",steps:["2x+3=11","2x+3-3=11-3","2x=8"],note:"Primero eliminamos el $+3$ restando $3$ a ambos lados"},
+      {eq:"2x=8",steps:["2x=8","2x\\div2=8\\div2","x=4"],note:"Luego dividimos entre $2$ para despejar $x$"}
+    ]
   },
   { icon:"⚖️", title:"Etapa 3 · x en ambos lados",
     intro:"Cuando <strong>x aparece en los dos lados</strong>, primero pásalas todas al mismo lado.",
@@ -305,7 +321,11 @@ const LESSONS=[
            "2.º Resuelve la ecuación resultante (uno o dos pasos)"],
     exEq:"3x+2=x+8",
     exSteps:["3x+2=x+8","3x-x+2=x-x+8","2x+2=8","2x+2-2=8-2","2x=6","x=3"],
-    exNote:"Comprueba: $3\\cdot3+2=11=1\\cdot3+8$ ✓"
+    exNote:"Comprueba: $3\\cdot3+2=11=1\\cdot3+8$ ✓",
+    ruleExamples:[
+      {eq:"3x+2=x+8",steps:["3x+2=x+8","3x-x+2=x-x+8","2x+2=8"],note:"Restamos $x$ a ambos lados (menor coeficiente)"},
+      {eq:"2x+2=8",steps:["2x+2=8","2x+2-2=8-2","2x=6","x=3"],note:"Ahora resolvemos la ecuación resultante de dos pasos"}
+    ]
   }
 ];
 
@@ -488,20 +508,65 @@ function updateStepper(){
 }
 
 /* ── LESSON SCREEN ─────────────────────────────────────── */
+/* Generators per phase and rule index for "generar otro ejemplo" */
+const RULE_GENS=[
+  [gXpA,gXmA,gAX,gXdA],
+  [gAxpB,gAxmB,gXdApB,gXdAmB],
+  [gXbs,gXbs2]
+];
+
+function buildExBoxHtml(eq,stepsArr,note,phase,ruleIdx){
+  const stHtml=stepsArr.map((s,i)=>`<div class="ex-step"><div class="ex-snum">${i+1}</div><div class="ex-step-math">${rInline(s)}</div></div>`).join("");
+  return `<div class="ex-title">Ejemplo resuelto</div>
+    <div class="ex-eq">${rEq(eq)}</div>
+    <div class="ex-steps">${stHtml}</div>
+    <div class="ex-note">${rText(note)}</div>
+    <button class="btn-gen-ex" onclick="newLessonEx(${phase},${ruleIdx})">↻ Generar otro ejemplo</button>`;
+}
+
+function setExBox(html,phase,ruleIdx){
+  const box=document.getElementById('lesson-ex-box');
+  if(!box)return;
+  box.innerHTML=html;
+  /* Highlight active rule button */
+  const L=LESSONS[phase];
+  L.rules.forEach((_,i)=>{
+    const btn=document.getElementById(`rule-btn-${phase}-${i}`);
+    if(btn)btn.classList.toggle('open',i===ruleIdx);
+  });
+}
+
+function showRuleExample(phase,ruleIdx){
+  const ex=LESSONS[phase].ruleExamples[ruleIdx];
+  setExBox(buildExBoxHtml(ex.eq,ex.steps,ex.note||'',phase,ruleIdx),phase,ruleIdx);
+}
+
+function newLessonEx(phase,ruleIdx){
+  const phGens=RULE_GENS[phase]||[];
+  const gen=(ruleIdx>=0&&ruleIdx<phGens.length)?phGens[ruleIdx]:rc(phGens);
+  const q=gen();
+  const note=`Comprueba: sustituye $x=${q.ans}$ en la ecuación ✓`;
+  setExBox(buildExBoxHtml(q.eq,q.steps||[],note,phase,ruleIdx),phase,ruleIdx);
+}
+
 function showLesson(phase){
   updateStepper();
   const L=LESSONS[phase];
-  const stepsHtml=L.exSteps.map((s,i)=>`<div class="ex-step"><div class="ex-snum">${i+1}</div><div class="ex-step-math">${rInline(s)}</div></div>`).join("");
+  const rulesHtml=L.rules.map((r,i)=>{
+    const hasEx=L.ruleExamples&&L.ruleExamples[i];
+    return `<div class="rule-row">
+      <span class="rule-arr">→</span>
+      <span class="rule-text">${rText(r)}</span>
+      ${hasEx?`<button id="rule-btn-${phase}-${i}" class="rule-ex-btn" onclick="showRuleExample(${phase},${i})">Ver ejemplo</button>`:''}
+    </div>`;
+  }).join("");
   document.getElementById("lesson-screen").innerHTML=`
     <div class="lesson-icon">${L.icon}</div>
     <h2 class="lesson-title">${L.title}</h2>
     <p class="lesson-intro">${rText(L.intro)}</p>
-    <ul class="lesson-rules">${L.rules.map(r=>`<li>${rText(r)}</li>`).join("")}</ul>
-    <div class="ex-box">
-      <div class="ex-title">Ejemplo resuelto</div>
-      <div class="ex-eq">${rEq(L.exEq)}</div>
-      <div class="ex-steps">${stepsHtml}</div>
-      <div class="ex-note">${rText(L.exNote)}</div>
+    <div class="lesson-rules">${rulesHtml}</div>
+    <div class="ex-box" id="lesson-ex-box">
+      ${buildExBoxHtml(L.exEq,L.exSteps,L.exNote,phase,-1)}
     </div>
     <button class="btn-main" onclick="startPhase()">Practicar esta etapa →</button>`;
   showOnly("lesson-screen");
