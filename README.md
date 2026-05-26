@@ -61,6 +61,18 @@ Las ecuaciones se generan en tiempo real con parámetros aleatorios y soluciones
 
 ---
 
+## Estructura del proyecto
+
+```
+bayes-itinerario/
+├── index.html                                        Interfaz y lógica del itinerario adaptativo
+├── ayuda.html                                        Guía de uso y fundamentos técnicos
+├── documentacion_evaluacion_adaptativa_bayesiana.md  Protocolo en Markdown (para adjuntar a IA)
+└── README.md                                         Este documento
+```
+
+---
+
 ## Licencia
 
 - Contenido educativo: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
