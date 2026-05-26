@@ -515,6 +515,15 @@ const RULE_GENS=[
   [gXbs,gXbs2]
 ];
 
+const REINFORCE_GENS={
+  suma_resta:[gXpA,gXmA],
+  mult_div:[gAX,gXdA],
+  dos_pasos:[gAxpB,gAxmB,gXdApB,gXdAmB],
+  op_inversa:[gXpA,gXmA,gAX,gXdA],
+  detectar_error:[gDetF,gDetM],
+  x_ambos_lados:[gXbs,gXbs2]
+};
+
 function buildExBoxHtml(eq,stepsArr,note,phase,ruleIdx){
   const stHtml=stepsArr.map((s,i)=>`<div class="ex-step"><div class="ex-snum">${i+1}</div><div class="ex-step-math">${rInline(s)}</div></div>`).join("");
   return `<div class="ex-title">Ejemplo resuelto</div>
@@ -580,22 +589,45 @@ function startPhase(){
 }
 
 /* ── REINFORCEMENT SCREEN ──────────────────────────────── */
+function buildRfPoolExHtml(e){
+  return `<div class="rf-ex">
+    <div class="rf-eq">${rEq(e.eq)}</div>
+    <div style="text-align:center">${rInline(e.step)}</div>
+    ${e.rule?`<div class="rf-rule">${e.rule}</div>`:""}
+  </div>`;
+}
+
+function buildRfGenExHtml(q){
+  const stHtml=q.steps&&q.steps.length
+    ?q.steps.map((s,i)=>`<div class="ex-step"><div class="ex-snum">${i+1}</div><div class="ex-step-math">${rInline(s)}</div></div>`).join("")
+    :"";
+  return `<div class="rf-ex">
+    <div class="rf-eq">${rEq(q.eq)}</div>
+    ${stHtml?`<div class="ex-steps" style="margin:6px 0">${stHtml}</div>`:""}
+    ${q.expl?`<div class="rf-rule">${rText(q.expl)}</div>`:""}
+  </div>`;
+}
+
 function showReinforcement(cat){
   pendingReinforce=null;
   const R=REINFORCE[cat]||REINFORCE["dos_pasos"];
   const picked=sfl([...R.pool]).slice(0,2);
-  const exsHtml=picked.map(e=>`
-    <div class="rf-ex">
-      <div class="rf-eq">${rEq(e.eq)}</div>
-      <div style="text-align:center">${rInline(e.step)}</div>
-      ${e.rule?`<div class="rf-rule">${e.rule}</div>`:""}
-    </div>`).join("");
+  const exsHtml=picked.map(buildRfPoolExHtml).join("");
   document.getElementById("reinforce-screen").innerHTML=`
     <div class="rf-header">${R.title}</div>
     <div class="rf-body">${rText(R.body)}</div>
-    ${exsHtml}
+    <div id="rf-ex-box">${exsHtml}</div>
+    <button class="btn-gen-ex" onclick="newReinforceEx('${cat}')">↻ Ver otros ejemplos</button>
     <button class="btn-ok" onclick="continueAfterReinforce()">Entendido, seguir practicando →</button>`;
   showOnly("reinforce-screen");
+}
+
+function newReinforceEx(cat){
+  const gens=REINFORCE_GENS[cat];
+  if(!gens||!gens.length)return;
+  const q1=rc(gens)(),q2=rc(gens)();
+  const box=document.getElementById("rf-ex-box");
+  if(box)box.innerHTML=buildRfGenExHtml(q1)+buildRfGenExHtml(q2);
 }
 
 function continueAfterReinforce(){
