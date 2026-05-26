@@ -144,7 +144,7 @@ tr:last-child td{border-bottom:none}
   <!-- MOTOR BAYESIANO -->
   <div class="card">
     <h2>🧠 Motor bayesiano: estimación del nivel</h2>
-    <p>El programa mantiene una <strong>distribución de probabilidad</strong> sobre tres hipótesis de nivel:</p>
+    <p>El programa mantiene una <strong>distribución de probabilidad</strong> sobre tres hipótesis de nivel. Esa estimación se usa de dos formas: como diagnóstico global del itinerario y, además, como estimación específica dentro de cada etapa para decidir si esa técnica está suficientemente dominada.</p>
     <table>
       <tr><th>Hipótesis</th><th>Interpretación</th><th>Habilidad θ</th></tr>
       <tr><td><em>Iniciando</em></td><td>Aún construyendo las bases</td><td id="t0"></td></tr>
@@ -179,12 +179,12 @@ tr:last-child td{border-bottom:none}
     <h2>🛑 Condición de parada por etapa</h2>
     <p>Una etapa termina cuando se cumple <strong>cualquiera</strong> de estas condiciones:</p>
     <ol>
-      <li style="margin-bottom:8px"><strong>Convergencia bayesiana</strong> — tras al menos 4 preguntas, la entropía de las creencias cae por debajo del umbral H<sub>stop</sub> <em>y</em> la hipótesis más probable no es <em>Iniciando</em>. El sistema tiene suficiente certeza de dominio.</li>
+      <li style="margin-bottom:8px"><strong>Convergencia bayesiana</strong> — tras al menos 4 preguntas, la entropía de la estimación de esa etapa cae por debajo del umbral H<sub>stop</sub> <em>y</em> la hipótesis más probable de la etapa supera el 80&thinsp;% de confianza. El sistema considera que ya tiene evidencia suficiente sobre el dominio de esa técnica.</li>
       <li><strong>Máximo alcanzado</strong> — se han respondido 10 preguntas sin converger.</li>
     </ol>
     <p style="margin-top:12px">El umbral se calcula a partir de la probabilidad mínima de dominio p<sub>min</sub> = 0.80:</p>
     <div class="formula-box" id="f-hstop"></div>
-    <div class="note">⚠️ Si se alcanza el máximo de 10 preguntas con nivel <em>Iniciando</em>, el sistema avisa y recomienda repasar la lección antes de continuar.</div>
+    <div class="note">⚠️ Para dar una etapa por superada no basta con terminarla: el alumno debe alcanzar al menos un 60&thinsp;% de aciertos en esa etapa y una confianza mínima del 80&thinsp;% en un nivel distinto de <em>Iniciando</em>. Si no ocurre, el sistema recomienda repasar la lección antes de continuar.</div>
   </div>
 
 </div>

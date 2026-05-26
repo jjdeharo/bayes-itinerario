@@ -284,6 +284,7 @@ const PHASES=[
   {label:"x en ambos lados", sub:"ecuaciones completas",bVal: 1, icon:"⚖️"}
 ];
 const MIN_Q_PHASE=4, MAX_Q_PHASE=10;
+const PHASE_PASS_RATIO=0.60;
 
 /* Lesson content per phase */
 const LESSONS=[
@@ -477,7 +478,7 @@ function generatePool(){
 
 /* ── STATE ─────────────────────────────────────────────── */
 const CAT_LABELS={suma_resta:"Suma y resta",mult_div:"Mult. y división",dos_pasos:"Dos operaciones",op_inversa:"Operación inversa",detectar_error:"Detectar errores",x_ambos_lados:"x en ambos lados"};
-let beliefs,QUESTIONS=[],currentQ=null;
+let beliefs,phaseBeliefs,QUESTIONS=[],currentQ=null;
 let qCount,okCount,koCount,history,catCounts,selAns,answered,koStreak;
 let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,pendingReinforce;
 /* per-phase stats for results */
@@ -486,6 +487,7 @@ let phaseStats=[];
 function init(){
   QUESTIONS=generatePool();
   beliefs=[1/NH,1/NH,1/NH];
+  phaseBeliefs=[1/NH,1/NH,1/NH];
   qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;
   currentPhase=0;phaseQCount=0;phaseOkCount=0;phaseErrByCat={};pendingReinforce=null;
   phaseStats=[];
@@ -582,6 +584,7 @@ function showLesson(phase){
 }
 
 function startPhase(){
+  phaseBeliefs=[1/NH,1/NH,1/NH];
   phaseQCount=0;phaseOkCount=0;phaseErrByCat={};pendingReinforce=null;
   updateStepper();
   showOnly("quiz-screen");
@@ -646,14 +649,17 @@ function askNextPhaseQuestion(){
   if(!pool.length){advancePhase();return;}
   renderQuestion(pickFromPool(pool,catCounts));
 }
-function phaseConverged(){return phaseQCount>=MIN_Q_PHASE&&Hent(beliefs)<HSTOP&&beliefs.indexOf(Math.max(...beliefs))>0;}
-function phasePassed(){return beliefs.indexOf(Math.max(...beliefs))>0;}
+function phaseConfidence(){return Math.max(...phaseBeliefs);}
+function phaseLevelIndex(){return phaseBeliefs.indexOf(Math.max(...phaseBeliefs));}
+function phaseAccuracy(){return phaseQCount?phaseOkCount/phaseQCount:0;}
+function phaseConverged(){return phaseQCount>=MIN_Q_PHASE&&Hent(phaseBeliefs)<HSTOP&&phaseLevelIndex()>0&&phaseConfidence()>=P_MIN;}
+function phasePassed(){return phaseLevelIndex()>0&&phaseConfidence()>=P_MIN&&phaseAccuracy()>=PHASE_PASS_RATIO;}
 function isPhaseComplete(){return phaseConverged()||phaseQCount>=MAX_Q_PHASE||phasePool().length===0;}
 
 /* ── ADVANCE PHASE ─────────────────────────────────────── */
 function advancePhase(){
   const passed=phasePassed();
-  phaseStats.push({ok:phaseOkCount,total:phaseQCount,passed});
+  phaseStats.push({ok:phaseOkCount,total:phaseQCount,passed,beliefs:[...phaseBeliefs]});
   const completed=currentPhase;
   currentPhase++;
   if(currentPhase>=PHASES.length){showResults();return;}
@@ -668,17 +674,17 @@ function showPhaseReport(completed){
   const errHtml=Object.entries(phaseErrByCat).filter(([,n])=>n>0).sort((a,b)=>b[1]-a[1])
     .map(([c,n])=>`<div class="ritem"><span class="ric">⚠️</span><span>${CAT_LABELS[c]||c} — ${n} error${n>1?'es':''}</span></div>`).join('');
   const okHtml=!errHtml?`<div class="ritem"><span class="ric">✅</span><span>Sin errores en esta etapa</span></div>`:'';
-  const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx);
+  const mx=Math.max(...ps.beliefs),mxi=ps.beliefs.indexOf(mx);
 
   const warningHtml=!passed?`<div class="prov" style="margin-bottom:14px">
-    ⚠️ <strong>Nivel no alcanzado:</strong> el sistema estima que aún estás en fase inicial en esta etapa.
-    Se recomienda repasar la lección antes de continuar.
+    ⚠️ <strong>Etapa no superada:</strong> en esta técnica aún no hay suficiente evidencia de dominio.
+    Se recomienda repasar la lección y repetir la etapa antes de continuar.
   </div>`:'';
   const headColor=passed?'var(--ok)':'#f59e0b';
   const headText=passed?`Etapa ${completed+1} superada ✓`:`Etapa ${completed+1} completada`;
   const scoreMsg=passed
-    ?(pct>=80?'¡Muy bien! Lista/o para la siguiente etapa.':'Buen progreso. La siguiente etapa te ayudará a consolidar.')
-    :'Dedica más tiempo a esta técnica antes de avanzar.';
+    ?(pct>=80?'¡Muy bien! Lista/o para la siguiente etapa.':'Has superado la etapa con margen suficiente. Conviene seguir consolidando.')
+    :`Necesitas al menos ${Math.round(PHASE_PASS_RATIO*100)}% de aciertos y alta confianza en esta etapa para darla por dominada.`;
   const nextBtns=passed
     ?`<button class="btn-main" onclick="showLesson(${currentPhase})">Comenzar Etapa ${currentPhase+1} →</button>`
     :`<button class="btn-main" onclick="retryPhase(${completed})">Repasar la lección e intentarlo de nuevo →</button>
@@ -697,6 +703,7 @@ function showPhaseReport(completed){
       <div class="sbox"><div class="sval">${pct}%</div><div class="slbl">Correctas</div></div>
       <div class="sbox"><div class="sval" style="color:${HCOLORS[mxi]};font-size:.95rem;font-weight:700">${HNAMES[mxi]}</div><div class="slbl">Nivel</div></div>
     </div>
+    <p style="font-size:.82rem;color:var(--muted);text-align:center;margin:-4px 0 12px">Confianza de etapa: ${Math.round(mx*100)}% · Umbral de superación: ${Math.round(PHASE_PASS_RATIO*100)}% de aciertos y ${Math.round(P_MIN*100)}% de confianza</p>
     <div class="sec"><h3>${errHtml?'Categorías con errores':'Resultado'}</h3>${errHtml}${okHtml}</div>
     <p style="font-size:.88rem;color:var(--muted);text-align:center;margin-bottom:4px">${scoreMsg}</p>
     ${nextBtns}`;
@@ -707,8 +714,11 @@ function retryPhase(phaseIndex){
   currentPhase=phaseIndex;
   phaseStats=phaseStats.slice(0,phaseIndex);
   history=history.filter(r=>r.phase<phaseIndex);
+  phaseBeliefs=[1/NH,1/NH,1/NH];
   catCounts={};history.forEach(r=>{catCounts[r.q.category]=(catCounts[r.q.category]||0)+1;});
   qCount=history.length;okCount=history.filter(r=>r.ok).length;koCount=history.filter(r=>!r.ok).length;
+  beliefs=[1/NH,1/NH,1/NH];
+  history.forEach(r=>updateBeliefs(r.ok,r.q));
   showLesson(phaseIndex);
 }
 
@@ -755,6 +765,8 @@ function submitAnswer(){
   catCounts[q.category]=(catCounts[q.category]||0)+1;
   if(!ok){phaseErrByCat[q.category]=(phaseErrByCat[q.category]||0)+1;}
   history.push({q,ok,phase:currentPhase});
+  const phaseRaw=phaseBeliefs.map((p,i)=>p*lik(ok,i,q)),phaseSum=phaseRaw.reduce((a,b)=>a+b,0);
+  phaseBeliefs=phaseRaw.map(p=>p/phaseSum);
   updateBeliefs(ok,q);
 
   /* hint after 2 consecutive errors */
@@ -801,19 +813,19 @@ function updateProgStrip(){
   const pct=Math.min(100,phaseQCount/MAX_Q_PHASE*100);
   document.getElementById("prog-bar").style.width=pct+"%";
   document.getElementById("prog-lbl").textContent=`Etapa ${currentPhase+1} · ${phaseQCount}/${MAX_Q_PHASE}`;
-  const cp=Math.round((1-Hent(beliefs)/Math.log2(NH))*100);
+  const cp=Math.round((1-Hent(phaseBeliefs)/Math.log2(NH))*100);
   document.getElementById("cert-lbl").textContent=`Certeza: ${cp}%`;
 }
 function updateBeliefsBar(){
-  const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx);
+  const mx=Math.max(...phaseBeliefs),mxi=phaseBeliefs.indexOf(mx);
   document.getElementById("conf-lbl").textContent=`${HNAMES[mxi]}: ${Math.round(mx*100)}%`;
-  beliefs.forEach((p,i)=>{const s=document.getElementById(`seg-${i}`),w=(p*100).toFixed(1);s.style.width=w+"%";s.style.background=HCOLORS[i];s.textContent=parseFloat(w)>9?`${HNAMES[i]} ${Math.round(w)}%`:"";});
+  phaseBeliefs.forEach((p,i)=>{const s=document.getElementById(`seg-${i}`),w=(p*100).toFixed(1);s.style.width=w+"%";s.style.background=HCOLORS[i];s.textContent=parseFloat(w)>9?`${HNAMES[i]} ${Math.round(w)}%`:"";});
 }
 
 /* ── RESULTS ───────────────────────────────────────────── */
 function showResults(){
   /* ensure last phase is saved */
-  if(phaseStats.length<PHASES.length) phaseStats.push({ok:phaseOkCount,total:phaseQCount});
+  if(phaseStats.length<PHASES.length) phaseStats.push({ok:phaseOkCount,total:phaseQCount,passed:phasePassed(),beliefs:[...phaseBeliefs]});
 
   document.getElementById("stepper").style.display="none";
   showOnly("results-screen");
