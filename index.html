@@ -276,6 +276,22 @@ function pickFromPool(pool,cats){
   for(let i=0;i<cands.length;i++){r-=wts[i];if(r<=0)return cands[i].q;}
   return cands[cands.length-1].q;
 }
+/* Person-fit l_z (Drasgow, Levine & Williams, 1985) — sobre toda la sesión,
+   bajo la hipótesis más probable hi. Señal de cautela, no prueba formal:
+   l_z muy negativo (< -2) = patrón incoherente con el nivel estimado. */
+const MIN_PF=8;
+function personFit(hi){
+  const eps=1e-6;let l0=0,E=0,V=0,n=0;
+  for(const r of history){
+    let p=lik(true,hi,r.q);p=Math.min(1-eps,Math.max(eps,p));
+    const x=r.ok?1:0,lo=Math.log(p/(1-p));
+    l0+=x*Math.log(p)+(1-x)*Math.log(1-p);
+    E +=p*Math.log(p)+(1-p)*Math.log(1-p);
+    V +=p*(1-p)*lo*lo;n++;
+  }
+  if(n<MIN_PF||V<1e-9)return{lz:null,n};
+  return{lz:(l0-E)/Math.sqrt(V),n};
+}
 
 /* ── PHASE DEFINITIONS ─────────────────────────────────── */
 const PHASES=[
@@ -832,7 +848,10 @@ function showResults(){
   const el=document.getElementById("results-screen");
 
   const mx=Math.max(...beliefs),mxi=beliefs.indexOf(mx),lvl=HNAMES[mxi];
-  const prov=Hent(beliefs)>=HSTOP||mx<P_MIN;
+  const provUncertain=Hent(beliefs)>=HSTOP||mx<P_MIN;
+  const pf=personFit(mxi);
+  const provMisfit=pf.lz!==null&&pf.lz<-2;
+  const prov=provUncertain||provMisfit;
 
   const errByCat={};history.filter(r=>!r.ok).forEach(r=>{errByCat[r.q.category]=(errByCat[r.q.category]||0)+1;});
   const weak=Object.entries(errByCat).sort((a,b)=>b[1]-a[1]).map(([c])=>CAT_LABELS[c]||c);
@@ -856,7 +875,11 @@ function showResults(){
     Dominando:{title:"🚀 Siguiente nivel",items:["Prueba ecuaciones con <strong>paréntesis</strong> (ej.: $2(x+3)=10$).","Explora <strong>ecuaciones con fracciones</strong> (ej.: $\\frac{x}{2}+\\frac{x}{3}=5$).","Aplica ecuaciones en <strong>problemas con contexto</strong>."]}
   };
   const rec=recMap[lvl];
-  const provH=prov?`<div class="prov">⚠️ <strong>Diagnóstico provisional:</strong> el sistema no alcanzó suficiente certeza. El resultado es orientativo.</div>`:"";
+  let provMsg="";
+  if(provUncertain&&provMisfit) provMsg="el sistema no alcanzó suficiente certeza y, además, tu patrón de respuestas es poco coherente con el nivel estimado (posibles descuidos o respuestas al azar)";
+  else if(provUncertain) provMsg="el sistema no alcanzó suficiente certeza";
+  else provMsg="tu patrón de respuestas es poco coherente con el nivel estimado: acertar preguntas difíciles y fallar fáciles, descuidos o respuestas al azar pueden explicarlo";
+  const provH=prov?`<div class="prov">⚠️ <strong>Diagnóstico provisional:</strong> ${provMsg}. El resultado es orientativo.</div>`:"";
   const stH=strong.length?`<div class="sec"><h3>Puntos fuertes</h3>${strong.map(a=>`<div class="ritem"><span class="ric">✅</span><span>${a}</span></div>`).join("")}</div>`:"";
   const wkH=weak.length?`<div class="sec"><h3>Áreas a reforzar</h3>${weak.map(a=>`<div class="ritem"><span class="ric">⚠️</span><span>${a}</span></div>`).join("")}</div>`:"";
 

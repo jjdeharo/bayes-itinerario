@@ -72,6 +72,13 @@ tr:last-child td{border-bottom:none}
 .site-footer .sep{margin:0 .5rem;opacity:.35}
 
 @media(max-width:480px){body{padding:14px 14px 0}.card{padding:16px 18px}.phase-row{flex-direction:column}}
+@media print{
+  body{padding:0}
+  .back-btn{display:none}
+  .card{box-shadow:none;border:1px solid var(--border);break-inside:avoid;page-break-inside:avoid}
+  .formula-box{overflow:visible;break-inside:avoid;page-break-inside:avoid}
+  .formula-box .katex{font-size:.95rem}
+}
 </style>
 </head>
 <body>
@@ -187,6 +194,18 @@ tr:last-child td{border-bottom:none}
     <div class="note">⚠️ Para dar una etapa por superada no basta con terminarla: el alumno debe alcanzar al menos un 60&thinsp;% de aciertos en esa etapa y una confianza mínima del 80&thinsp;% en un nivel distinto de <em>Iniciando</em>. Si no ocurre, el sistema recomienda repasar la lección antes de continuar.</div>
   </div>
 
+  <!-- PERSON-FIT -->
+  <div class="card">
+    <h2>🔍 Coherencia del patrón de respuestas (person-fit)</h2>
+    <p>El porcentaje de certeza mide <strong>cuán concentrada</strong> está la creencia del modelo, pero no si el <strong>patrón de respuestas observado es compatible</strong> con esa creencia. Un alumno puede terminar con alta certeza y, aun así, haber respondido de forma incoherente con el nivel estimado: acertar las preguntas difíciles y fallar las fáciles, sufrir descuidos o acertar al azar en opción múltiple y verdadero/falso.</p>
+    <p>Para detectar esos casos, al cerrar el informe se calcula el <strong>índice de ajuste individual</strong> <em>l<sub>z</sub></em> (Drasgow, Levine &amp; Williams, 1985) sobre toda la sesión, bajo la hipótesis de nivel más probable. Partiendo de la log-verosimilitud observada del patrón:</p>
+    <div class="formula-box" id="f-l0"></div>
+    <p>con su valor esperado y varianza bajo el nivel estimado se obtiene el índice estandarizado:</p>
+    <div class="formula-box" id="f-lz"></div>
+    <p>que bajo el modelo se distribuye aproximadamente como una normal estándar. Un valor <strong>muy negativo</strong> (orientativamente <em>l<sub>z</sub></em> &lt; −2) señala un patrón improbable para el nivel estimado, y el informe marca entonces el diagnóstico como <strong>provisional</strong>.</p>
+    <div class="note">⚠️ Es una <strong>señal de cautela, no una prueba formal</strong>. <em>l<sub>z</sub></em> es una aproximación asintótica: con pocas preguntas su distribución se aleja de la normal, por lo que solo se calcula cuando hay al menos 8 respuestas en la sesión y nunca se usa como criterio de aprobado ni para promocionar etapas.</div>
+  </div>
+
 </div>
 
 <footer class="site-footer">
@@ -204,10 +223,12 @@ const ri=(id,latex)=>document.getElementById(id).innerHTML=katex.renderToString(
 
 rd('f-bayes', 'P(H_i \\mid r) = \\dfrac{P(r \\mid H_i)\\cdot P(H_i)}{\\displaystyle\\sum_j P(r \\mid H_j)\\cdot P(H_j)}');
 rd('f-irt',   'P(\\text{acierto} \\mid H_i,\\,q) = c_q + \\dfrac{1-c_q}{1+e^{-a(\\theta_i - b_q)}}');
-rd('f-ig',    'IG(q) = H(\\text{creencias}) - \\bigl[P(\\text{ac})\\cdot H(\\text{post}_{\\text{ac}}) + P(\\text{fa})\\cdot H(\\text{post}_{\\text{fa}})\\bigr]');
+rd('f-ig',    '\\begin{aligned} IG(q) ={}& H(\\text{creencias}) \\\\ &- \\bigl[P(\\text{ac})\\cdot H(\\text{post}_{\\text{ac}}) + P(\\text{fa})\\cdot H(\\text{post}_{\\text{fa}})\\bigr] \\end{aligned}');
 rd('f-entropy','H = -\\sum_i p_i \\log_2 p_i');
 rd('f-div',   '\\text{peso}(q) = \\dfrac{1}{1 + n_{\\text{cat}(q)}}');
 rd('f-hstop', 'H_{\\text{stop}} = -p_{\\min}\\log_2 p_{\\min} - (1-p_{\\min})\\log_2\\!\\left(\\dfrac{1-p_{\\min}}{n-1}\\right)');
+rd('f-l0',    '\\begin{aligned} &l_0 = \\sum_q \\bigl[\\, x_q \\ln p_q + (1-x_q)\\ln(1-p_q) \\,\\bigr] \\\\[4pt] &p_q = P(\\text{acierto}\\mid\\hat\\theta,\\,q) \\end{aligned}');
+rd('f-lz',    '\\begin{aligned} &l_z = \\dfrac{l_0 - \\mathbb{E}[l_0]}{\\sqrt{\\operatorname{Var}[l_0]}} \\\\[6pt] &\\mathbb{E}[l_0] = \\sum_q\\bigl[p_q\\ln p_q+(1-p_q)\\ln(1-p_q)\\bigr] \\\\[6pt] &\\operatorname{Var}[l_0] = \\sum_q p_q(1-p_q)\\Bigl[\\ln\\tfrac{p_q}{1-p_q}\\Bigr]^2 \\end{aligned}');
 
 ri('t0','\\theta = -2');
 ri('t1','\\theta = 0');
