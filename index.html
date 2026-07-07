@@ -257,11 +257,14 @@ const frac=(x,a)=>`\\dfrac{${x}}{${a}}`;
 
 /* ── BAYESIAN ENGINE ───────────────────────────────────── */
 const NH=3,HNAMES=["Iniciando","Avanzando","Dominando"],HCOLORS=["#fbbf24","#60a5fa","#34d399"];
-const THETA=[-2,0,2],A=1.5,P_MIN=0.80;
+const THETA=[-2,0,2],A_EF=1.25,P_MIN=0.80;
 function calcHstop(p,n){const r=(1-p)/(n-1);return -p*Math.log2(p)-(n-1)*r*Math.log2(r);}
 const HSTOP=calcHstop(P_MIN,NH);
 const Hent=d=>-d.reduce((s,p)=>p<1e-12?s:s+p*Math.log2(p),0);
-const lik=(ok,hi,q)=>{const p=q.c+(1-q.c)/(1+Math.exp(-A*(THETA[hi]-q.b)));return ok?p:1-p;};
+// a se deriva de A_EF y del suelo de azar c de cada pregunta (a = A_EF/(1-c)),
+// para que preguntas con distinto c (abiertas, opción múltiple...) discriminen
+// igual en su punto de inflexión (ver documentación del método, §4.4).
+const lik=(ok,hi,q)=>{const a=A_EF/(1-q.c);const p=q.c+(1-q.c)/(1+Math.exp(-a*(THETA[hi]-q.b)));return ok?p:1-p;};
 function updateBeliefs(ok,q){const r=beliefs.map((p,i)=>p*lik(ok,i,q)),s=r.reduce((a,b)=>a+b,0);beliefs=r.map(p=>p/s);}
 function igQ(q){
   const pA=beliefs.reduce((s,p,i)=>s+p*lik(true,i,q),0),pF=1-pA;

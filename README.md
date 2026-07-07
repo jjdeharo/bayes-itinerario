@@ -36,8 +36,10 @@ $$P(\text{acierto} \mid H_i, q) = c_q + \frac{1 - c_q}{1 + e^{-a(\theta_i - b_q)
 |-----------|-------------|---------|
 | θ | Habilidad por hipótesis | −2, 0, +2 |
 | b | Dificultad del ítem | −1, 0, +1 |
-| a | Discriminación | 1.5 (fijo) |
-| c | Pseudo-azar | 0 / 0.25 / 0.5 |
+| a | Discriminación | derivada por pregunta: `a = a_ef / (1 − c)`, con `a_ef = 1.25` |
+| c | Pseudo-azar | 0 / 0.25 / 0.5 según el tipo de pregunta |
+
+Como el banco mezcla preguntas abiertas y de opción múltiple con distinto número de opciones, `a` no se fija: se deriva de la discriminación efectiva objetivo `a_ef` y del `c` de cada pregunta, para que todas discriminen igual en su punto de inflexión con independencia del formato (`c=0` → `a=1.25`; `c=0.25` → `a≈1.667`; `c=0.5` → `a=2.5`).
 
 ### Selección adaptativa
 

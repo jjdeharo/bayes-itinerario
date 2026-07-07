@@ -165,7 +165,7 @@ tr:last-child td{border-bottom:none}
     <ul class="param-list">
       <li><span class="param-key" id="pk-theta"></span>habilidad asociada a la hipótesis i</li>
       <li><span class="param-key" id="pk-bq"></span>dificultad de la pregunta (−1 fácil, 0 media, +1 difícil)</li>
-      <li><span class="param-key" id="pk-a"></span>discriminación — pendiente de la curva logística (a = 1.5)</li>
+      <li><span class="param-key" id="pk-a"></span>discriminación — pendiente de la curva logística. No es fija: se deriva por pregunta de una discriminación efectiva objetivo (a_ef = 1.25) y del suelo de azar c, mediante a = a_ef / (1 − c), para que todas discriminen igual con independencia del formato (c=0 → a=1.25; c=0.25 → a≈1.667; c=0.5 → a=2.5)</li>
       <li><span class="param-key" id="pk-c"></span>probabilidad de acierto por azar: 0 (numérica), 0.25 (opción múltiple), 0.5 (V/F)</li>
     </ul>
   </div>
