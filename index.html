@@ -500,18 +500,43 @@ function gOpInvH(){let a,c,x,b,d,att=0;do{a=ri(2,5);c=ri(1,a-1);x=ri(1,8);b=ri(1
 function gDetH(){let a,c,x,b,d,att=0;do{a=ri(2,6);c=ri(1,a-1);x=ri(1,8);b=ri(1,8);d=b+(a-c)*x;att++;}while((d<=0||d>35)&&att<30);const eq=`${a}x+${b}=${c}x+${d}`;const useOk=Math.random()<0.5,prop=useOk?x:safeWrong(x),ans=prop===x;return{b:1,c:0.5,category:"x_ambos_lados",type:"vof",qt:`Un alumno dice que la solución es $x=${prop}$. ¿Es correcto?`,eq,ans,expl:ans?`Sí, correcto: $x=${x}$ satisface la ecuación ✓.`:`No es correcto. La solución es $x=${x}$.`,hint:`Sustituye $x=${prop}$ y comprueba.`};}
 
 /* Pool generator */
+/* Generadores de cada etapa. Son paramétricos: cada llamada produce una variante nueva
+   del mismo tipo de ejercicio (mismo concepto, dificultad y formato, otros números). */
+const PHASE_GENS=[
+  [gXpA,gXmA,gAX,gXdA,gXpA,gXmA,gOpInvF,gOpInvF,gDetF,gDetF],
+  [gAxpB,gAxmB,gXdApB,gXdAmB,gAxpB,gAxmB,gSolMC4M,gOpInvM,gSolMC4M,gDetM],
+  [gXbs,gXbs2,gXbs,gXbs2,gXbs,gXbs2,gSolMC4H,gOpInvH,gDetH,gDetH]
+];
+
+let nextQId=1;   // los ids nunca se reciclan: una variante nueva es un ítem nuevo
+
+/* Genera los ejercicios de una etapa. `evitar` son enunciados que no deben repetirse
+   (los ya vistos), para que una variante nueva no salga idéntica a la anterior. */
+function generatePhase(phaseIndex,evitar){
+  const pool=[],used=new Set(evitar||[]);
+  PHASE_GENS[phaseIndex].forEach(g=>{
+    let q,att=0;
+    do{q=g();att++;}while(used.has(q.eq)&&att<30);
+    used.add(q.eq);
+    q.id=nextQId++;
+    q.b=PHASES[phaseIndex].bVal;
+    pool.push(q);
+  });
+  return pool;
+}
+
 function generatePool(){
-  const pool=[],used=new Set();
-  function add(g){let q,att=0;do{q=g();att++;}while(used.has(q.eq)&&att<30);used.add(q.eq);q.id=pool.length+1;pool.push(q);}
-  [gXpA,gXmA,gAX,gXdA,gXpA,gXmA,gOpInvF,gOpInvF,gDetF,gDetF].forEach(g=>add(g));
-  [gAxpB,gAxmB,gXdApB,gXdAmB,gAxpB,gAxmB,gSolMC4M,gOpInvM,gSolMC4M,gDetM].forEach(g=>add(g));
-  [gXbs,gXbs2,gXbs,gXbs2,gXbs,gXbs2,gSolMC4H,gOpInvH,gDetH,gDetH].forEach(g=>add(g));
+  nextQId=1;
+  let pool=[];
+  for(let i=0;i<PHASE_GENS.length;i++) pool=pool.concat(generatePhase(i,pool.map(q=>q.eq)));
   return pool;
 }
 
 /* ── STATE ─────────────────────────────────────────────── */
 const CAT_LABELS={suma_resta:"Suma y resta",mult_div:"Mult. y división",dos_pasos:"Dos operaciones",op_inversa:"Operación inversa",detectar_error:"Detectar errores",x_ambos_lados:"x en ambos lados"};
 let beliefs,phaseBeliefs,QUESTIONS=[],currentQ=null;
+/* Ítems cuya solución ya se ha mostrado al alumno. No se vuelven a plantear (ver phasePool). */
+let seenIds=new Set();
 let qCount,okCount,koCount,history,catCounts,selAns,answered,koStreak;
 let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,pendingReinforce,lastPauseQ;
 /* per-phase stats for results */
@@ -519,6 +544,7 @@ let phaseStats=[];
 
 function init(){
   QUESTIONS=generatePool();
+  seenIds=new Set();
   beliefs=[1/NH,1/NH,1/NH];
   phaseBeliefs=[1/NH,1/NH,1/NH];
   qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;lastPauseQ=-99;
@@ -673,9 +699,12 @@ function continueAfterReinforce(){
 }
 
 /* ── PHASE QUESTION SELECTION ──────────────────────────── */
+/* Un ítem cuya corrección ya se ha mostrado no vuelve a plantearse: acertarlo después
+   mediría memoria del feedback, no dominio (método, «Selección adaptativa» / hallazgo N2).
+   `seenIds` sobrevive a la repetición de etapa, que sí reinicia el historial local. */
 function phasePool(){
   const bVal=PHASES[currentPhase].bVal,used=new Set(history.map(r=>r.q.id));
-  return QUESTIONS.filter(q=>q.b===bVal&&!used.has(q.id));
+  return QUESTIONS.filter(q=>q.b===bVal&&!used.has(q.id)&&!seenIds.has(q.id));
 }
 function askNextPhaseQuestion(){
   const pool=phasePool();
@@ -764,6 +793,13 @@ function retryPhase(phaseIndex){
   currentPhase=phaseIndex;
   phaseStats=phaseStats.slice(0,phaseIndex);
   history=history.filter(r=>r.phase<phaseIndex);
+  /* Al repetir la etapa, sus ejercicios se regeneran como variantes nuevas del mismo tipo
+     (mismo concepto, dificultad y formato, otros números). Sin esto, el alumno volvería a
+     ver los mismos ítems con la solución ya explicada y su acierto no sería evidencia de
+     dominio (hallazgo N2). El banco es paramétrico, así que la variante no cuesta nada. */
+  const bVal=PHASES[phaseIndex].bVal;
+  const otras=QUESTIONS.filter(q=>q.b!==bVal);
+  QUESTIONS=otras.concat(generatePhase(phaseIndex,QUESTIONS.map(q=>q.eq)));
   phaseBeliefs=[1/NH,1/NH,1/NH];
   catCounts={};history.forEach(r=>{catCounts[r.q.category]=(catCounts[r.q.category]||0)+1;});
   qCount=history.length;okCount=history.filter(r=>r.ok).length;koCount=history.filter(r=>!r.ok).length;
@@ -823,7 +859,9 @@ function submitAnswer(){
   /* hint after 2 consecutive errors */
   if(!ok&&koStreak>=2&&q.hint){const hb=document.getElementById("hint-box");hb.innerHTML=`💡 <strong>Pista:</strong> ${rText(q.hint)}`;hb.style.display="block";}
 
-  /* feedback */
+  /* feedback: a partir de aquí el alumno conoce la solución de este ítem, así que no
+     debe volver a plantearse (hallazgo N2) */
+  seenIds.add(q.id);
   const fb=document.getElementById("feedback");fb.style.display="block";fb.className="fb "+(ok?"ok":"ko");
   document.getElementById("fb-head").innerHTML=ok?"✓ ¡Correcto!":"✗ No es correcto";
   document.getElementById("fb-body").innerHTML=rText(q.expl);

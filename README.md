@@ -53,6 +53,8 @@ Una etapa termina cuando el sistema converge (entropía < H_stop y nivel estimad
 
 Las ecuaciones se generan en tiempo real con parámetros aleatorios y soluciones siempre enteras, por lo que nunca se repiten entre sesiones.
 
+Un ejercicio cuya corrección ya se ha mostrado no vuelve a plantearse: acertarlo después mediría memoria de la explicación, no dominio. Si el alumno **repite una etapa**, sus ejercicios se regeneran como variantes nuevas del mismo tipo (mismo concepto, dificultad y formato, otros números), de modo que el segundo intento aporta evidencia genuina.
+
 ---
 
 ## Tecnologías
