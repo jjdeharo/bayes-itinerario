@@ -191,7 +191,7 @@ tr:last-child td{border-bottom:none}
     </ol>
     <p style="margin-top:12px">El umbral se calcula a partir de la probabilidad mínima de dominio p<sub>min</sub> = 0.80:</p>
     <div class="formula-box" id="f-hstop"></div>
-    <div class="note">⚠️ Para dar una etapa por superada no basta con terminarla: el alumno debe alcanzar al menos un 60&thinsp;% de aciertos en esa etapa y una confianza mínima del 80&thinsp;% en un nivel distinto de <em>Iniciando</em>. Si no ocurre, el sistema recomienda repasar la lección antes de continuar.</div>
+    <div class="note">⚠️ Para dar una etapa por superada no basta con terminarla. Además de una confianza mínima del 80&thinsp;% en un nivel distinto de <em>Iniciando</em>, el patrón de aciertos de la etapa debe ser <strong>coherente con ese dominio</strong>: el número de aciertos observado no debe quedar muy por debajo del que predice el nivel estimado para las preguntas planteadas (a más de una desviación por debajo de lo esperado). No se usa un porcentaje fijo de aciertos, porque al elegir las preguntas por máxima información la tasa de acierto tiende por diseño hacia <em>(1+c)/2</em> y un umbral fijo como el 60&thinsp;% penalizaría a quien sí domina. Si el patrón no es coherente, el sistema recomienda repasar la lección antes de continuar.</div>
   </div>
 
   <!-- PERSON-FIT -->
@@ -222,7 +222,7 @@ const rd=(id,latex)=>document.getElementById(id).innerHTML=katex.renderToString(
 const ri=(id,latex)=>document.getElementById(id).innerHTML=katex.renderToString(latex,{displayMode:false,throwOnError:false});
 
 rd('f-bayes', 'P(H_i \\mid r) = \\dfrac{P(r \\mid H_i)\\cdot P(H_i)}{\\displaystyle\\sum_j P(r \\mid H_j)\\cdot P(H_j)}');
-rd('f-irt',   'P(\\text{acierto} \\mid H_i,\\,q) = c_q + \\dfrac{1-c_q}{1+e^{-a(\\theta_i - b_q)}}');
+rd('f-irt',   'P(\\text{acierto} \\mid H_i,\\,q) = \\min\\!\\left(0{,}95,\\; c_q + \\dfrac{1-c_q}{1+e^{-a(\\theta_i - b_q)}}\\right)');
 rd('f-ig',    '\\begin{aligned} IG(q) ={}& H(\\text{creencias}) \\\\ &- \\bigl[P(\\text{ac})\\cdot H(\\text{post}_{\\text{ac}}) + P(\\text{fa})\\cdot H(\\text{post}_{\\text{fa}})\\bigr] \\end{aligned}');
 rd('f-entropy','H = -\\sum_i p_i \\log_2 p_i');
 rd('f-div',   '\\text{peso}(q) = \\dfrac{1}{1 + n_{\\text{cat}(q)}}');

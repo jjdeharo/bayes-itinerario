@@ -47,7 +47,7 @@ En cada turno se selecciona la pregunta que maximiza la ganancia de información
 
 ### Condición de parada por etapa
 
-Una etapa termina cuando el sistema converge (entropía < H_stop y nivel estimado > *Iniciando*) tras un mínimo de 4 preguntas, o al alcanzar el máximo de 10. Si el alumno no supera el umbral se le recomienda repasar la lección antes de continuar.
+Una etapa termina cuando el sistema converge (entropía < H_stop y nivel estimado > *Iniciando*) tras un mínimo de 4 preguntas, o al alcanzar el máximo de 10. Para darla por **superada** no basta con terminarla: además de la confianza mínima (≥ 80 % en un nivel distinto de *Iniciando*), el patrón de aciertos debe ser coherente con ese dominio —los aciertos observados no deben quedar muy por debajo de los que predice el nivel estimado—. No se usa un umbral fijo de porcentaje de aciertos, porque al seleccionar las preguntas por máxima información la tasa de acierto tiende hacia *(1+c)/2* y penalizaría a quien sí domina. Si el patrón no es coherente, se recomienda repasar la lección antes de continuar.
 
 ### Preguntas generadas aleatoriamente
 

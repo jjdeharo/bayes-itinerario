@@ -258,13 +258,16 @@ const frac=(x,a)=>`\\dfrac{${x}}{${a}}`;
 /* ── BAYESIAN ENGINE ───────────────────────────────────── */
 const NH=3,HNAMES=["Iniciando","Avanzando","Dominando"],HCOLORS=["#fbbf24","#60a5fa","#34d399"];
 const THETA=[-2,0,2],A_EF=1.25,P_MIN=0.80;
+// Techo de dominio (slip): P(acierto) <= 0.95 aun en ítems fáciles, para que un
+// fallo no produzca una actualización casi determinista (método §"Verosimilitudes", hallazgo 1.3).
+const P_MAX=0.95;
 function calcHstop(p,n){const r=(1-p)/(n-1);return -p*Math.log2(p)-(n-1)*r*Math.log2(r);}
 const HSTOP=calcHstop(P_MIN,NH);
 const Hent=d=>-d.reduce((s,p)=>p<1e-12?s:s+p*Math.log2(p),0);
 // a se deriva de A_EF y del suelo de azar c de cada pregunta (a = A_EF/(1-c)),
 // para que preguntas con distinto c (abiertas, opción múltiple...) discriminen
 // igual en su punto de inflexión (ver documentación del método, §4.4).
-const lik=(ok,hi,q)=>{const a=A_EF/(1-q.c);const p=q.c+(1-q.c)/(1+Math.exp(-a*(THETA[hi]-q.b)));return ok?p:1-p;};
+const lik=(ok,hi,q)=>{const a=A_EF/(1-q.c);const p=Math.min(P_MAX,q.c+(1-q.c)/(1+Math.exp(-a*(THETA[hi]-q.b))));return ok?p:1-p;};
 function updateBeliefs(ok,q){const r=beliefs.map((p,i)=>p*lik(ok,i,q)),s=r.reduce((a,b)=>a+b,0);beliefs=r.map(p=>p/s);}
 function igQ(q){
   const pA=beliefs.reduce((s,p,i)=>s+p*lik(true,i,q),0),pF=1-pA;
@@ -303,7 +306,6 @@ const PHASES=[
   {label:"x en ambos lados", sub:"ecuaciones completas",bVal: 1, icon:"⚖️"}
 ];
 const MIN_Q_PHASE=4, MAX_Q_PHASE=10;
-const PHASE_PASS_RATIO=0.60;
 
 /* Lesson content per phase */
 const LESSONS=[
@@ -671,8 +673,25 @@ function askNextPhaseQuestion(){
 function phaseConfidence(){return Math.max(...phaseBeliefs);}
 function phaseLevelIndex(){return phaseBeliefs.indexOf(Math.max(...phaseBeliefs));}
 function phaseAccuracy(){return phaseQCount?phaseOkCount/phaseQCount:0;}
+/* Consistencia con el modelo (sustituye al umbral fijo de % de aciertos, §"Itinerarios por etapas",
+   hallazgo 1.1). Bajo selección por máxima ganancia de información la tasa de acierto tiende por
+   diseño hacia (1+c)/2, así que un umbral fijo como «60 %» bloquearía a alumnos que sí dominan.
+   En su lugar se compara lo observado con lo ESPERADO bajo el nivel local estimado hi: los aciertos
+   esperados en los ítems realmente planteados son E=Σ p_i, con desviación SD=√Σ p_i(1−p_i). La etapa
+   es coherente con el dominio si lo observado no queda muy por debajo de lo esperado (≥ E − ~1 SD).
+   Como las dificultades ya están fijadas por etapa, el acierto informa sobre el dominio real. */
+function phaseConsistent(){
+  const hi=phaseLevelIndex(),ph=Math.min(currentPhase,PHASES.length-1);
+  let E=0,V=0,n=0;
+  for(const r of history){
+    if(r.phase!==ph)continue;
+    const p=lik(true,hi,r.q);E+=p;V+=p*(1-p);n++;
+  }
+  if(n===0)return false;
+  return phaseOkCount>=E-Math.max(1,Math.sqrt(V));
+}
 function phaseConverged(){return phaseQCount>=MIN_Q_PHASE&&Hent(phaseBeliefs)<HSTOP&&phaseLevelIndex()>0&&phaseConfidence()>=P_MIN;}
-function phasePassed(){return phaseLevelIndex()>0&&phaseConfidence()>=P_MIN&&phaseAccuracy()>=PHASE_PASS_RATIO;}
+function phasePassed(){return phaseLevelIndex()>0&&phaseConfidence()>=P_MIN&&phaseConsistent();}
 function isPhaseComplete(){return phaseConverged()||phaseQCount>=MAX_Q_PHASE||phasePool().length===0;}
 
 /* ── ADVANCE PHASE ─────────────────────────────────────── */
@@ -702,8 +721,8 @@ function showPhaseReport(completed){
   const headColor=passed?'var(--ok)':'#f59e0b';
   const headText=passed?`Etapa ${completed+1} superada ✓`:`Etapa ${completed+1} completada`;
   const scoreMsg=passed
-    ?(pct>=80?'¡Muy bien! Lista/o para la siguiente etapa.':'Has superado la etapa con margen suficiente. Conviene seguir consolidando.')
-    :`Necesitas al menos ${Math.round(PHASE_PASS_RATIO*100)}% de aciertos y alta confianza en esta etapa para darla por dominada.`;
+    ?(pct>=80?'¡Muy bien! Lista/o para la siguiente etapa.':'Has superado la etapa: tu nivel estimado y tu patrón de respuestas son coherentes con el dominio.')
+    :`Para dar la etapa por dominada hace falta alta confianza en el nivel y un patrón de respuestas coherente con ese dominio.`;
   const nextBtns=passed
     ?`<button class="btn-main" onclick="showLesson(${currentPhase})">Comenzar Etapa ${currentPhase+1} →</button>`
     :`<button class="btn-main" onclick="retryPhase(${completed})">Repasar la lección e intentarlo de nuevo →</button>
@@ -722,7 +741,7 @@ function showPhaseReport(completed){
       <div class="sbox"><div class="sval">${pct}%</div><div class="slbl">Correctas</div></div>
       <div class="sbox"><div class="sval" style="color:${HCOLORS[mxi]};font-size:.95rem;font-weight:700">${HNAMES[mxi]}</div><div class="slbl">Nivel</div></div>
     </div>
-    <p style="font-size:.82rem;color:var(--muted);text-align:center;margin:-4px 0 12px">Confianza de etapa: ${Math.round(mx*100)}% · Umbral de superación: ${Math.round(PHASE_PASS_RATIO*100)}% de aciertos y ${Math.round(P_MIN*100)}% de confianza</p>
+    <p style="font-size:.82rem;color:var(--muted);text-align:center;margin:-4px 0 12px">Confianza de etapa: ${Math.round(mx*100)}% · Superación: nivel por encima de «Iniciando» con ≥ ${Math.round(P_MIN*100)}% de confianza y respuestas coherentes con ese dominio</p>
     <div class="sec"><h3>${errHtml?'Categorías con errores':'Resultado'}</h3>${errHtml}${okHtml}</div>
     <p style="font-size:.88rem;color:var(--muted);text-align:center;margin-bottom:4px">${scoreMsg}</p>
     ${nextBtns}`;
