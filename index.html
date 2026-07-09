@@ -223,6 +223,7 @@ input[type=number]:disabled{cursor:not-allowed}
         <div class="fb-body" id="fb-body"></div>
         <div class="steps-box" id="steps-box" style="display:none"></div>
       </div>
+      <div id="calm-box" style="display:none;margin-top:12px;padding:12px 14px;border-radius:12px;background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;font-size:.9rem;line-height:1.55"></div>
       <button class="btn-sec" id="btn-next">Siguiente →</button>
     </div>
     <div class="card conf-card">
@@ -297,6 +298,17 @@ function personFit(hi){
   }
   if(n<MIN_PF||V<1e-9)return{lz:null,n};
   return{lz:(l0-E)/Math.sqrt(V),n};
+}
+
+/* Comprobación de coherencia EN VIVO (no solo al cierre): si tras suficientes
+   respuestas el patrón es inverosímil para el nivel estimado (l_z < -2), el
+   recurso hace una pausa con tacto en lugar de seguir gastando banco (método
+   §"Validación y fiabilidad" / hallazgo 3.2). Con enfriamiento para no insistir. */
+const PF_LIVE_LZ=-2, PF_LIVE_COOLDOWN=5;
+function liveMisfit(){
+  const hiG=beliefs.indexOf(Math.max(...beliefs));
+  const pf=personFit(hiG);
+  return pf.lz!==null && pf.lz<PF_LIVE_LZ && (qCount-lastPauseQ)>=PF_LIVE_COOLDOWN;
 }
 
 /* ── PHASE DEFINITIONS ─────────────────────────────────── */
@@ -501,7 +513,7 @@ function generatePool(){
 const CAT_LABELS={suma_resta:"Suma y resta",mult_div:"Mult. y división",dos_pasos:"Dos operaciones",op_inversa:"Operación inversa",detectar_error:"Detectar errores",x_ambos_lados:"x en ambos lados"};
 let beliefs,phaseBeliefs,QUESTIONS=[],currentQ=null;
 let qCount,okCount,koCount,history,catCounts,selAns,answered,koStreak;
-let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,pendingReinforce;
+let currentPhase,phaseQCount,phaseOkCount,phaseErrByCat,pendingReinforce,lastPauseQ;
 /* per-phase stats for results */
 let phaseStats=[];
 
@@ -509,7 +521,7 @@ function init(){
   QUESTIONS=generatePool();
   beliefs=[1/NH,1/NH,1/NH];
   phaseBeliefs=[1/NH,1/NH,1/NH];
-  qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;
+  qCount=0;okCount=0;koCount=0;history=[];catCounts={};selAns=null;answered=false;koStreak=0;lastPauseQ=-99;
   currentPhase=0;phaseQCount=0;phaseOkCount=0;phaseErrByCat={};pendingReinforce=null;
   phaseStats=[];
 }
@@ -780,6 +792,7 @@ function renderQuestion(q){
     chk.disabled=true;
   }
   document.getElementById("hint-box").style.display="none";
+  document.getElementById("calm-box").style.display="none";
   const fb=document.getElementById("feedback");fb.style.display="none";fb.className="fb";
   document.getElementById("steps-box").style.display="none";
   chk.style.display="block";
@@ -842,6 +855,14 @@ function submitAnswer(){
     else{nxt.textContent="Ver mi informe final →";nxt.onclick=advancePhase;}
   } else {
     nxt.textContent="Siguiente pregunta →";nxt.onclick=askNextPhaseQuestion;
+  }
+  /* Pausa de reconducción en vivo si el patrón es inverosímil (hallazgo 3.2). */
+  if(!phDone && !pendingReinforce && liveMisfit()){
+    lastPauseQ=qCount;
+    const cb=document.getElementById("calm-box");
+    cb.innerHTML="🌿 <strong>Hagamos una pausa.</strong> Algunas respuestas no encajan del todo con lo que vienes demostrando —quizá por un despiste o por ir con prisa—. No pasa nada: respira, lee con calma la siguiente y responde a tu ritmo.";
+    cb.style.display="block";
+    nxt.textContent="Continuar con calma →";
   }
   updateBeliefsBar();
 }
